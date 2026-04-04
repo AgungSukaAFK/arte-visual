@@ -1,9 +1,9 @@
-import { Redirect } from "expo-router";
+import { Redirect, Stack } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
 import { Center } from "@/components/ui/center";
 import { Spinner } from "@/components/ui/spinner";
 
-export default function Index() {
+export default function AdminLayout() {
   const { session, role, isLoading } = useAuth();
 
   if (isLoading) {
@@ -14,14 +14,13 @@ export default function Index() {
     );
   }
 
-  // Arahkan sesuai status dan role
   if (!session) {
     return <Redirect href="/(auth)/login" />;
   }
 
-  if (role === "admin") {
-    return <Redirect href="/(admin)" />;
+  if (role === "client") {
+    return <Redirect href="/(client)" />;
   }
 
-  return <Redirect href="/(client)" />;
+  return <Stack screenOptions={{ headerShown: false }} />;
 }
