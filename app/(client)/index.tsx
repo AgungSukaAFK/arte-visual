@@ -1,10 +1,12 @@
-import React, { useState } from "react";
-import { Alert, ScrollView } from "react-native";
-import { router } from "expo-router";
-import { useAuth } from "@/context/AuthContext";
+import React, { useState, useEffect } from "react";
+import { ScrollView } from "react-native";
+import { router, useFocusEffect } from "expo-router";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
+import { Ionicons } from "@expo/vector-icons";
+import { useColorScheme } from "nativewind";
 
-// Gluestack UI Components
+// Gluestack Components
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Text } from "@/components/ui/text";
@@ -13,123 +15,233 @@ import { Box } from "@/components/ui/box";
 import { Pressable } from "@/components/ui/pressable";
 import { SafeAreaView } from "@/components/ui/safe-area-view";
 import { Avatar, AvatarFallbackText } from "@/components/ui/avatar";
-import { Button, ButtonSpinner, ButtonText } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { Center } from "@/components/ui/center";
 
-export default function ClientDashboard() {
+export default function ClientHome() {
   const { user } = useAuth();
-  // Mengambil nama dari metadata Supabase saat register
   const userName = user?.user_metadata?.full_name || "Klien Arte";
-  const [loadingLogout, setLoadingLogout] = useState(false);
 
-  const handleLogout = () => {
-    Alert.alert("Keluar", "Apakah Anda yakin ingin keluar?", [
-      { text: "Batal", style: "cancel" },
-      {
-        text: "Keluar",
-        style: "destructive",
-        onPress: async () => {
-          setLoadingLogout(true);
-          const { error } = await supabase.auth.signOut();
+  // Deteksi tema agar ikon adaptif (hitam saat terang, putih saat gelap)
+  const { colorScheme } = useColorScheme();
+  const iconColor = colorScheme === "dark" ? "#FFFFFF" : "#181718";
 
-          if (error) {
-            Alert.alert("Gagal logout", "Terjadi kesalahan. Coba lagi.");
-          }
+  const [activeOrders, setActiveOrders] = useState<any[]>([]);
+  const [historyOrders, setHistoryOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-          setLoadingLogout(false);
-          // Client layout akan otomatis redirect ke login saat session null.
-        },
-      },
-    ]);
+  // Pakai useFocusEffect agar data di-refresh setiap kali user kembali ke tab Home
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchOrders();
+    }, []),
+  );
+
+  const fetchOrders = async () => {
+    setLoading(true);
+    // Mengambil pesanan dan join dengan tabel packages untuk dapat nama paketnya
+    const { data, error } = await supabase
+      .from("bookings")
+      .select("*, packages(name)")
+      .eq("client_id", user?.id)
+      .order("event_date", { ascending: true });
+
+    if (data) {
+      // Memilah data berdasarkan status
+      setActiveOrders(
+        data.filter((b) => b.status === "pending" || b.status === "confirmed"),
+      );
+      setHistoryOrders(
+        data.filter(
+          (b) => b.status === "completed" || b.status === "cancelled",
+        ),
+      );
+    }
+    setLoading(false);
   };
 
   return (
     <SafeAreaView className="flex-1 bg-background-50">
-      <ScrollView contentContainerClassName="flex-grow pb-8">
+      <ScrollView
+        contentContainerClassName="flex-grow pb-8"
+        showsVerticalScrollIndicator={false}
+      >
         <VStack className="px-6 pt-6 gap-8">
           {/* Header Section */}
           <HStack className="items-center justify-between">
-            <VStack>
-              <Text className="text-typography-500 font-medium text-sm">
-                Selamat datang kembali,
-              </Text>
-              <Heading className="text-2xl font-extrabold text-typography-900">
-                {userName}
-              </Heading>
-            </VStack>
             <HStack className="items-center gap-3">
               <Avatar size="md" className="bg-primary-500">
                 <AvatarFallbackText className="text-typography-0">
                   {userName}
                 </AvatarFallbackText>
               </Avatar>
-              <Button
-                size="sm"
-                variant="outline"
-                action="negative"
-                onPress={handleLogout}
-                disabled={loadingLogout}
-                className="rounded-full border-error-200 bg-error-50 px-4"
+              <VStack>
+                <Text className="text-typography-500 font-medium text-xs uppercase tracking-wider">
+                  Selamat datang,
+                </Text>
+                <Heading className="text-xl font-extrabold text-typography-900">
+                  {userName}
+                </Heading>
+              </VStack>
+            </HStack>
+
+            {/* Menu Aksi: Pembayaran & Notifikasi */}
+            <HStack className="items-center gap-5">
+              <Pressable
+                onPress={() => console.log("Buka menu pembayaran")}
+                className="active:opacity-60 relative"
               >
-                {loadingLogout ? (
-                  <ButtonSpinner color="$error500" />
-                ) : (
-                  <ButtonText className="text-error-600 font-bold">
-                    Logout
-                  </ButtonText>
-                )}
-              </Button>
+                <Ionicons name="receipt-outline" size={24} color={iconColor} />
+                {/* Indikator Merah Mini (Dummy: untuk tagihan belum lunas) */}
+                <Box className="absolute -top-1 -right-1 w-3 h-3 bg-error-500 rounded-full border-2 border-background-50" />
+              </Pressable>
+
+              <Pressable
+                onPress={() => console.log("Buka menu notifikasi")}
+                className="active:opacity-60"
+              >
+                <Ionicons
+                  name="notifications-outline"
+                  size={24}
+                  color={iconColor}
+                />
+              </Pressable>
             </HStack>
           </HStack>
 
-          {/* Call to Action Card - Mewah & Menonjol */}
+          {/* Quick Access Card -> Arte Calendar */}
           <Pressable
             onPress={() => router.push("/(client)/calendar")}
             className="active:opacity-90 active:scale-[0.98] transition-transform"
           >
-            <Box className="bg-typography-900 rounded-3xl p-6 shadow-hard-2">
+            <Box className="bg-typography-900 rounded-3xl p-6 shadow-soft-2">
               <VStack className="gap-2">
                 <Box className="bg-background-0/20 self-start px-3 py-1 rounded-full mb-2">
-                  <Text className="text-typography-0 font-bold text-xs uppercase tracking-widest">
-                    Baru
+                  <Text className="text-typography-0 font-bold text-[10px] uppercase tracking-widest">
+                    Akses Cepat
                   </Text>
                 </Box>
                 <Heading className="text-typography-0 text-2xl font-bold">
-                  Buat Pesanan
+                  Booking Jadwal
                 </Heading>
-                <Text className="text-typography-0/80 text-sm mt-1">
-                  Eksplorasi paket dan pilih tanggal momen terbaikmu bersama
-                  Arte Visual.
+                <Text className="text-typography-0/70 text-sm mt-1">
+                  Abadikan momen berhargamu dengan sentuhan profesional Arte
+                  Visual.
                 </Text>
 
                 <HStack className="items-center gap-2 mt-4">
                   <Text className="text-typography-0 font-bold">
-                    Cek Kalender →
+                    Buka Arte Calendar →
                   </Text>
                 </HStack>
               </VStack>
             </Box>
           </Pressable>
 
-          {/* Riwayat Pesanan Section */}
+          {/* List Pesanan Aktif */}
           <VStack className="gap-4">
-            <HStack className="justify-between items-center">
-              <Heading className="text-lg font-bold text-typography-900">
-                Pesanan Aktif
-              </Heading>
-              <Text className="text-primary-500 font-bold text-sm">
-                Lihat Semua
-              </Text>
-            </HStack>
+            <Heading className="text-lg font-bold text-typography-900">
+              Pesanan Aktif
+            </Heading>
 
-            {/* Empty State untuk Pesanan (Karena database masih kosong) */}
-            <Box className="bg-background-0 border border-outline-100 rounded-2xl p-8 items-center justify-center border-dashed">
-              <Text className="text-typography-400 text-center">
-                Belum ada pesanan aktif.
-              </Text>
-              <Text className="text-typography-400 text-center text-sm mt-1">
-                Momen pertamamu menunggu untuk diabadikan.
-              </Text>
-            </Box>
+            {loading ? (
+              <Center className="py-6">
+                <Spinner size="large" className="text-typography-900" />
+              </Center>
+            ) : activeOrders.length === 0 ? (
+              <Box className="bg-background-0 border border-outline-100 rounded-2xl p-6 items-center justify-center border-dashed">
+                <Text className="text-typography-400 text-center text-sm">
+                  Belum ada pesanan yang aktif saat ini.
+                </Text>
+              </Box>
+            ) : (
+              <VStack className="gap-4">
+                {activeOrders.map((order) => (
+                  <Box
+                    key={order.id}
+                    className="bg-background-0 p-5 rounded-2xl border border-outline-100 shadow-soft-1"
+                  >
+                    <HStack className="justify-between items-center mb-3">
+                      <Heading
+                        className="text-typography-900 font-extrabold text-base flex-1"
+                        numberOfLines={1}
+                      >
+                        {order.packages?.name || "Paket Jasa"}
+                      </Heading>
+                      <Box
+                        className={`px-2 py-1 rounded-md ${order.status === "confirmed" ? "bg-primary-100" : "bg-warning-100"}`}
+                      >
+                        <Text
+                          className={`text-[10px] font-bold uppercase ${order.status === "confirmed" ? "text-primary-700" : "text-warning-700"}`}
+                        >
+                          {order.status}
+                        </Text>
+                      </Box>
+                    </HStack>
+                    <VStack className="gap-1">
+                      <HStack className="items-center gap-2">
+                        <Ionicons name="calendar" size={14} color="#737373" />
+                        <Text className="text-typography-500 text-sm font-medium">
+                          {order.event_date}
+                        </Text>
+                      </HStack>
+                      <HStack className="items-center gap-2">
+                        <Ionicons name="location" size={14} color="#737373" />
+                        <Text
+                          className="text-typography-500 text-sm font-medium"
+                          numberOfLines={1}
+                        >
+                          {order.location}
+                        </Text>
+                      </HStack>
+                    </VStack>
+                  </Box>
+                ))}
+              </VStack>
+            )}
+          </VStack>
+
+          {/* Riwayat Pesanan */}
+          <VStack className="gap-4">
+            <Heading className="text-lg font-bold text-typography-900">
+              Riwayat Pesanan
+            </Heading>
+
+            {loading ? (
+              <Center className="py-6">
+                <Spinner size="large" className="text-typography-900" />
+              </Center>
+            ) : historyOrders.length === 0 ? (
+              <Box className="bg-background-0 border border-outline-100 rounded-2xl p-6 items-center justify-center border-dashed">
+                <Text className="text-typography-400 text-center text-sm">
+                  Belum ada riwayat pesanan yang selesai.
+                </Text>
+              </Box>
+            ) : (
+              <VStack className="gap-4">
+                {historyOrders.map((order) => (
+                  <Box
+                    key={order.id}
+                    className="bg-background-50 p-5 rounded-2xl border border-outline-100 opacity-70"
+                  >
+                    <HStack className="justify-between items-center mb-2">
+                      <Heading
+                        className="text-typography-900 font-extrabold text-base flex-1"
+                        numberOfLines={1}
+                      >
+                        {order.packages?.name || "Paket Jasa"}
+                      </Heading>
+                      <Text className="text-success-600 text-xs font-bold uppercase">
+                        {order.status}
+                      </Text>
+                    </HStack>
+                    <Text className="text-typography-500 text-sm">
+                      Selesai pada: {order.event_date}
+                    </Text>
+                  </Box>
+                ))}
+              </VStack>
+            )}
           </VStack>
         </VStack>
       </ScrollView>

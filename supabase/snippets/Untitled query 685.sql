@@ -1,0 +1,1 @@
+ALTER TABLE public.gallery ADD COLUMN category text;

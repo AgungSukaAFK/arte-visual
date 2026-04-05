@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { ScrollView } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { supabase } from "@/lib/supabase";
+import { Ionicons } from "@expo/vector-icons";
+import { useColorScheme } from "nativewind";
 
 // Gluestack UI Components
 import { VStack } from "@/components/ui/vstack";
@@ -9,18 +11,27 @@ import { HStack } from "@/components/ui/hstack";
 import { Text } from "@/components/ui/text";
 import { Heading } from "@/components/ui/heading";
 import { Box } from "@/components/ui/box";
-import { Button, ButtonText, ButtonSpinner } from "@/components/ui/button";
-import { Pressable } from "@/components/ui/pressable";
+import { Button, ButtonText } from "@/components/ui/button";
 import { SafeAreaView } from "@/components/ui/safe-area-view";
 import { Center } from "@/components/ui/center";
 import { Spinner } from "@/components/ui/spinner";
+import {
+  useToast,
+  Toast,
+  ToastTitle,
+  ToastDescription,
+} from "@/components/ui/toast";
 
 export default function PackageListScreen() {
-  // Menangkap parameter tanggal dari halaman kalender sebelumnya
+  // Menangkap parameter tanggal (hanya ada jika dilempar dari Modal Kalender)
   const { date } = useLocalSearchParams<{ date: string }>();
 
   const [packages, setPackages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const toast = useToast();
+
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
 
   useEffect(() => {
     fetchPackages();
@@ -28,18 +39,16 @@ export default function PackageListScreen() {
 
   const fetchPackages = async () => {
     setLoading(true);
-    // Menarik semua paket yang statusnya aktif
     const { data, error } = await supabase
       .from("packages")
       .select("*")
       .eq("is_active", true)
-      .order("price", { ascending: true }); // Urutkan dari yang termurah
+      .order("price", { ascending: true });
 
     if (data) setPackages(data);
     setLoading(false);
   };
 
-  // Fungsi helper untuk memformat angka jadi Rupiah
   const formatRupiah = (angka: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -49,9 +58,40 @@ export default function PackageListScreen() {
   };
 
   const handleSelectPackage = (pkg: any) => {
-    console.log("Paket dipilih:", pkg.name, "untuk tanggal:", date);
-    // Nanti diarahkan ke form finalisasi (Checkout/Detail Booking)
-    // router.push({ pathname: '/(client)/checkout', params: { date, packageId: pkg.id } });
+    if (!date) {
+      // Jika user buka dari Tab Bawah langsung, arahkan ke Kalender dulu
+      if (!toast.isActive("missing-date")) {
+        toast.show({
+          id: "missing-date",
+          placement: "top",
+          render: ({ id }) => (
+            <Toast
+              nativeID={id}
+              action="warning"
+              variant="solid"
+              className="mt-4 px-4 py-3 bg-typography-900"
+            >
+              <VStack className="gap-1">
+                <ToastTitle className="font-bold text-typography-0">
+                  Pilih Tanggal Dulu
+                </ToastTitle>
+                <ToastDescription className="text-typography-0">
+                  Silakan pilih tanggal acara di kalender sebelum memilih paket.
+                </ToastDescription>
+              </VStack>
+            </Toast>
+          ),
+        });
+      }
+      router.push("/(client)/calendar");
+      return;
+    }
+
+    // Jika membawa tanggal, lanjut ke form finalisasi
+    router.push({
+      pathname: "/(client)/booking",
+      params: { date, packageId: pkg.id },
+    });
   };
 
   return (
@@ -60,32 +100,24 @@ export default function PackageListScreen() {
         contentContainerClassName="flex-grow pb-8"
         showsVerticalScrollIndicator={false}
       >
-        {/* Header Bar dengan Tombol Back */}
-        <HStack className="w-full px-6 pt-4 pb-2 items-center">
-          <Pressable
-            onPress={() => router.back()}
-            className="flex-row items-center gap-2 active:opacity-60 py-2"
-          >
-            <Text className="text-typography-900 text-xl font-bold">←</Text>
-            <Text className="text-typography-900 font-medium">Kembali</Text>
-          </Pressable>
-        </HStack>
-
-        <VStack className="px-6 mt-4 gap-6">
+        <VStack className="px-6 pt-8 gap-6">
           {/* Title Section */}
           <VStack className="gap-1 mb-2">
             <Text className="text-typography-500 font-medium text-sm tracking-widest uppercase">
-              Layanan Kami
+              Layanan & Harga
             </Text>
             <Heading className="text-3xl font-extrabold text-typography-900 tracking-tight">
-              Pilih Paket.
+              Pilih Paket Terbaik.
             </Heading>
+
+            {/* Indikator jika sedang dalam proses booking (membawa tanggal) */}
             {date && (
-              <Box className="bg-primary-500/10 self-start px-3 py-1.5 rounded-lg mt-2 border border-primary-500/20">
-                <Text className="text-primary-600 font-bold text-sm">
+              <HStack className="items-center gap-2 mt-3 bg-primary-50 px-3 py-2 rounded-xl border border-primary-100 self-start">
+                <Ionicons name="calendar" size={16} color="#0284c7" />
+                <Text className="text-primary-700 font-bold text-sm">
                   Untuk Tanggal: {date}
                 </Text>
-              </Box>
+              </HStack>
             )}
           </VStack>
 
@@ -95,26 +127,46 @@ export default function PackageListScreen() {
               <Spinner size="large" className="text-typography-900" />
             </Center>
           ) : (
-            <VStack className="gap-5">
+            <VStack className="gap-6">
               {packages.map((pkg) => {
-                // Parse string JSON features dari Supabase menjadi array
                 const featuresArray =
                   typeof pkg.features === "string"
                     ? JSON.parse(pkg.features)
                     : pkg.features;
+                const hasDiscount =
+                  pkg.original_price && pkg.original_price > pkg.price;
 
                 return (
                   <Box
                     key={pkg.id}
-                    className="bg-background-0 rounded-3xl p-6 shadow-sm border border-outline-100"
+                    className="bg-background-0 rounded-3xl p-6 shadow-soft-2 border border-outline-100 relative overflow-hidden"
                   >
-                    <VStack className="gap-4">
-                      {/* Nama & Harga */}
-                      <VStack className="gap-1">
-                        <Heading className="text-xl font-extrabold text-typography-900">
+                    {/* Efek Garis Desain di ujung card agar mewah */}
+                    <Box className="absolute top-0 right-0 w-16 h-16 bg-primary-500/10 rounded-bl-[60px]" />
+
+                    <VStack className="gap-5">
+                      {/* Header Card: Nama & Badge */}
+                      <VStack className="gap-2 items-start">
+                        {pkg.badge && (
+                          <Box className="bg-typography-900 px-3 py-1 rounded-full">
+                            <Text className="text-typography-0 text-[10px] font-bold uppercase tracking-widest">
+                              {pkg.badge}
+                            </Text>
+                          </Box>
+                        )}
+                        <Heading className="text-xl font-extrabold text-typography-900 leading-tight">
                           {pkg.name}
                         </Heading>
-                        <Text className="text-2xl font-black text-primary-500 tracking-tight">
+                      </VStack>
+
+                      {/* Harga Section */}
+                      <VStack className="gap-0.5">
+                        {hasDiscount && (
+                          <Text className="text-typography-400 text-sm font-bold line-through">
+                            {formatRupiah(pkg.original_price)}
+                          </Text>
+                        )}
+                        <Text className="text-3xl font-black text-primary-500 tracking-tight">
                           {formatRupiah(pkg.price)}
                         </Text>
                       </VStack>
@@ -124,19 +176,22 @@ export default function PackageListScreen() {
                         {pkg.description}
                       </Text>
 
-                      {/* Garis Pemisah (Divider) */}
-                      <Box className="h-[1px] bg-outline-100 w-full my-2" />
+                      <Box className="h-[1px] bg-outline-100 w-full" />
 
                       {/* Fitur List */}
-                      <VStack className="gap-2.5">
+                      <VStack className="gap-3">
                         <Text className="text-xs font-bold text-typography-900 uppercase tracking-widest">
-                          Termasuk:
+                          Yang Anda Dapatkan:
                         </Text>
                         {featuresArray?.map((feature: string, idx: number) => (
-                          <HStack key={idx} className="items-start gap-3">
-                            <Text className="text-primary-500 font-bold mt-0.5">
-                              ✓
-                            </Text>
+                          <HStack key={idx} className="items-center gap-3">
+                            <Box className="w-5 h-5 rounded-full bg-primary-50 items-center justify-center">
+                              <Ionicons
+                                name="checkmark"
+                                size={14}
+                                color="#0284c7"
+                              />
+                            </Box>
                             <Text className="text-typography-700 text-sm flex-1">
                               {feature}
                             </Text>
@@ -147,11 +202,11 @@ export default function PackageListScreen() {
                       {/* Tombol Pilih */}
                       <Button
                         size="xl"
-                        className="rounded-xl mt-4 bg-typography-900 active:bg-typography-800"
+                        className={`rounded-2xl mt-2 shadow-soft-1 ${date ? "bg-primary-500" : "bg-typography-900"}`}
                         onPress={() => handleSelectPackage(pkg)}
                       >
                         <ButtonText className="font-bold text-typography-0">
-                          Pilih Paket Ini
+                          {date ? "Pilih & Lanjut Booking" : "Pilih Paket Ini"}
                         </ButtonText>
                       </Button>
                     </VStack>

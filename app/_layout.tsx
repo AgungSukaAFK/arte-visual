@@ -69,7 +69,7 @@ function RootLayoutNav() {
           value={effectiveColorScheme === "dark" ? DarkTheme : DefaultTheme}
         >
           <Slot />
-          {pathname === "/" && (
+          {pathname === "/dev" && (
             <Fab onPress={handleToggleTheme} className="m-6" size="lg">
               <FabIcon
                 as={
