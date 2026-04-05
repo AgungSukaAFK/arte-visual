@@ -21,21 +21,21 @@ import { ScrollView } from "@/components/ui/scroll-view";
 import { SafeAreaView } from "@/components/ui/safe-area-view";
 import { Pressable } from "@/components/ui/pressable";
 
-export default function LoginScreen() {
+export default function RegisterScreen() {
   const toast = useToast();
-  // 1. FIX SPAM TOAST: Buat ID unik
-  const TOAST_ID = "auth-action-toast";
+  const TOAST_ID = "register-action-toast";
 
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const showToast = (
     title: string,
     description: string,
-    action: "error" | "success",
+    action: "success" | "error",
   ) => {
-    // 2. FIX SPAM TOAST: Cek apakah toast dengan ID ini sedang muncul
     if (!toast.isActive(TOAST_ID)) {
       toast.show({
         id: TOAST_ID,
@@ -63,27 +63,31 @@ export default function LoginScreen() {
     }
   };
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      return showToast("Oops!", "Email dan password wajib diisi.", "error");
-    }
+  const handleRegister = async () => {
+    if (!fullName || !email || !password)
+      return showToast("Oops!", "Semua kolom wajib diisi.", "error");
+    if (password.length < 8)
+      return showToast(
+        "Validasi Gagal",
+        "Password minimal 8 karakter.",
+        "error",
+      );
+    if (password !== confirmPassword)
+      return showToast("Validasi Gagal", "Password tidak cocok.", "error");
 
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
+      options: { data: { full_name: fullName, role: "client" } },
     });
     setLoading(false);
 
     if (error) {
-      const errorMessage = error.message.includes("Invalid login credentials")
-        ? "Email atau password salah."
-        : error.message;
-
-      showToast("Login Gagal", errorMessage, "error");
+      showToast("Registrasi Gagal", error.message, "error");
     } else {
-      // 3. FIX FREEZE: Arahkan paksa ke Root Index supaya "Satpam" segera bekerja
-      router.replace("/");
+      showToast("Berhasil!", "Akun berhasil dibuat. Silakan login.", "success");
+      router.replace("/(auth)/login");
     }
   };
 
@@ -97,17 +101,42 @@ export default function LoginScreen() {
           contentContainerClassName="flex-grow pb-8"
           keyboardShouldPersistTaps="handled"
         >
-          <VStack className="flex-1 justify-center px-6 pt-6 gap-8 w-full max-w-[400px] self-center">
+          {/* Header Bar dengan Tombol Back - Menggunakan safe area padding */}
+          <HStack className="w-full px-6 pt-4 pb-2 items-center">
+            <Pressable
+              onPress={() => router.back()}
+              className="flex-row items-center gap-2 active:opacity-60 py-2"
+            >
+              <Text className="text-typography-900 text-xl font-bold">←</Text>
+              <Text className="text-typography-900 font-medium">Kembali</Text>
+            </Pressable>
+          </HStack>
+
+          <VStack className="flex-1 justify-center px-6 mt-4 gap-8 w-full max-w-[400px] self-center">
             <VStack className="gap-2">
               <Heading className="text-3xl font-extrabold text-typography-900">
-                Selamat Datang!
+                Buat Akun
               </Heading>
               <Text className="text-typography-500 text-base">
-                Masuk untuk melanjutkan ke Arte Visual.
+                Mulai booking jadwal dokumentasimu.
               </Text>
             </VStack>
 
             <VStack className="gap-4">
+              <Input
+                variant="outline"
+                size="xl"
+                className="rounded-xl border-outline-300"
+              >
+                <InputField
+                  placeholder="Nama Lengkap"
+                  value={fullName}
+                  onChangeText={setFullName}
+                  autoCapitalize="words"
+                  className="px-4 text-typography-900"
+                />
+              </Input>
+
               <Input
                 variant="outline"
                 size="xl"
@@ -129,11 +158,26 @@ export default function LoginScreen() {
                 className="rounded-xl border-outline-300"
               >
                 <InputField
-                  placeholder="Password"
+                  placeholder="Password (min. 8 karakter)"
                   type="password"
                   value={password}
-                  autoCapitalize="none"
                   onChangeText={setPassword}
+                  autoCapitalize="none"
+                  className="px-4 text-typography-900"
+                />
+              </Input>
+
+              <Input
+                variant="outline"
+                size="xl"
+                className="rounded-xl border-outline-300"
+              >
+                <InputField
+                  placeholder="Konfirmasi Password"
+                  type="password"
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  autoCapitalize="none"
                   className="px-4 text-typography-900"
                 />
               </Input>
@@ -141,7 +185,7 @@ export default function LoginScreen() {
 
             <Button
               size="xl"
-              onPress={handleLogin}
+              onPress={handleRegister}
               disabled={loading}
               className={`rounded-xl mt-2 bg-primary-500 ${loading ? "opacity-70" : ""}`}
             >
@@ -149,20 +193,20 @@ export default function LoginScreen() {
                 <ButtonSpinner className="mr-2" color="white" />
               ) : null}
               <ButtonText className="font-bold text-typography-0">
-                {loading ? "Mengecek data..." : "Masuk"}
+                {loading ? "Memproses..." : "Daftar Sekarang"}
               </ButtonText>
             </Button>
 
             <HStack className="justify-center items-center gap-1">
               <Text className="text-sm text-typography-500">
-                Belum punya akun?
+                Sudah punya akun?
               </Text>
               <Pressable
-                onPress={() => router.push("/(auth)/register")}
+                onPress={() => router.push("/(auth)/login")}
                 className="active:opacity-60"
               >
                 <Text className="text-sm font-bold text-primary-500">
-                  Daftar di sini
+                  Masuk di sini
                 </Text>
               </Pressable>
             </HStack>

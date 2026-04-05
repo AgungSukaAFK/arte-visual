@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { Session, User } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
+import { Redirect } from "expo-router";
 
 // Tentukan tipe data role
-type Role = 'client' | 'admin' | null;
+type Role = "client" | "admin" | null;
 
 type AuthContextType = {
   session: Session | null;
@@ -41,7 +42,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     // 2. Dengarkan setiap perubahan status (Login/Logout)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -58,17 +61,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Fungsi untuk mengambil role dari tabel profiles
   const fetchRole = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .single();
-        
+      const { data, error } = (await Promise.race([
+        supabase.from("profiles").select("role").eq("id", userId).single(),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Timeout fetching role")), 5000),
+        ),
+      ])) as any;
+
       if (data) {
         setRole(data.role as Role);
+      } else {
+        setRole(null);
       }
     } catch (error) {
       console.error("Error fetching role:", error);
+      setRole(null);
     } finally {
       setIsLoading(false);
     }
