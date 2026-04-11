@@ -28,6 +28,7 @@ import {
   ModalFooter,
   ModalCloseButton,
 } from "@/components/ui/modal";
+import { getAppTheme, getCalendarTokens } from "../../constants/theme";
 
 // Konfigurasi Bahasa Indonesia untuk Kalender
 LocaleConfig.locales["id"] = {
@@ -71,7 +72,9 @@ export default function AdminDashboard() {
 
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
-  const iconColor = isDark ? "#FFFFFF" : "#181718";
+  const theme = getAppTheme(colorScheme);
+  const calendar = getCalendarTokens(colorScheme);
+  const iconColor = theme.icon;
 
   // State Statistik
   const [stats, setStats] = useState({
@@ -140,14 +143,10 @@ export default function AdminDashboard() {
       setAllBookings(calendarReq.data);
       let dates: any = {};
 
-      const confirmedColor = isDark ? "#38bdf8" : "#0284c7"; // Biru Primary
-      const pendingColor = isDark ? "#facc15" : "#eab308"; // Kuning Warning
-      const completedColor = isDark ? "#4ade80" : "#22c55e"; // Hijau Success
-
       calendarReq.data.forEach((booking) => {
-        let dotColor = pendingColor;
-        if (booking.status === "confirmed") dotColor = confirmedColor;
-        if (booking.status === "completed") dotColor = completedColor;
+        let dotColor = calendar.pending;
+        if (booking.status === "confirmed") dotColor = calendar.confirmed;
+        if (booking.status === "completed") dotColor = calendar.completed;
 
         dates[booking.event_date] = {
           marked: true,
@@ -280,19 +279,19 @@ export default function AdminDashboard() {
                     [selectedDate]: {
                       ...markedDates[selectedDate],
                       selected: true,
-                      selectedColor: isDark ? "#333333" : "#F1F5F9",
-                      selectedTextColor: isDark ? "#FFFFFF" : "#0F172A",
+                      selectedColor: calendar.selectedBg,
+                      selectedTextColor: calendar.selectedText,
                     },
                   }}
                   theme={{
                     backgroundColor: "transparent",
                     calendarBackground: "transparent",
-                    textSectionTitleColor: isDark ? "#A3A3A3" : "#737373",
-                    todayTextColor: isDark ? "#60A5FA" : "#2563eb",
-                    dayTextColor: isDark ? "#E5E5E5" : "#181718",
-                    textDisabledColor: isDark ? "#404040" : "#D4D4D4",
-                    arrowColor: isDark ? "#FFFFFF" : "#181718",
-                    monthTextColor: isDark ? "#FFFFFF" : "#181718",
+                    textSectionTitleColor: calendar.subtitle,
+                    todayTextColor: calendar.today,
+                    dayTextColor: calendar.title,
+                    textDisabledColor: calendar.disabled,
+                    arrowColor: calendar.arrow,
+                    monthTextColor: calendar.title,
                     textMonthFontWeight: "bold",
                     textDayFontSize: 14,
                   }}
@@ -323,7 +322,7 @@ export default function AdminDashboard() {
                 <Ionicons
                   name="checkmark-circle-outline"
                   size={48}
-                  color="#10b981"
+                  color={theme.success}
                   className="mb-2"
                 />
                 <Text className="text-typography-500 text-center text-sm">

@@ -1,11 +1,7 @@
 import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
 import "@/global.css";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
+import { ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
@@ -15,6 +11,7 @@ import { StatusBar } from "expo-status-bar";
 import { Fab, FabIcon } from "@/components/ui/fab";
 import { MoonIcon, SunIcon, SlashIcon } from "@/components/ui/icon";
 import { AuthProvider } from "@/context/AuthContext";
+import { getNavigationTheme } from "../constants/theme";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -51,6 +48,7 @@ function RootLayoutNav() {
   // Determine effective color scheme
   const effectiveColorScheme =
     mode === "system" ? (systemColorScheme ?? "light") : mode;
+  const navigationTheme = getNavigationTheme(effectiveColorScheme);
 
   const handleToggleTheme = () => {
     if (mode === "system") {
@@ -65,10 +63,11 @@ function RootLayoutNav() {
   return (
     <GluestackUIProvider mode={mode}>
       <AuthProvider>
-        <ThemeProvider
-          value={effectiveColorScheme === "dark" ? DarkTheme : DefaultTheme}
-        >
+        <ThemeProvider value={navigationTheme}>
           <Slot />
+          <StatusBar
+            style={effectiveColorScheme === "dark" ? "light" : "dark"}
+          />
           {pathname === "/dev" && (
             <Fab onPress={handleToggleTheme} className="m-6" size="lg">
               <FabIcon

@@ -1,6 +1,6 @@
 import React from 'react';
 import { createIcon } from '@gluestack-ui/core/icon/creator';
-import { Path } from 'react-native-svg';
+import { Path, Circle } from 'react-native-svg';
 import { tva } from '@gluestack-ui/utils/nativewind-utils';
 import { cssInterop } from 'nativewind';
 import { VariantProps } from '@gluestack-ui/utils/nativewind-utils';
@@ -615,7 +615,24 @@ const ClockIcon = createIcon({
 
 ClockIcon.displayName = 'ClockIcon';
 
-export { ClockIcon };
+const MapPinIcon = createIcon({
+  Root: Svg,
+  viewBox: '0 0 24 24',
+  path: (
+    <>
+      <Path
+        d="M20 10C20 16 12 22 12 22C12 22 4 16 4 10C4 5.58172 7.58172 2 12 2C16.4183 2 20 5.58172 20 10Z"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Circle cx="12" cy="10" r="3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </>
+  ),
+});
+MapPinIcon.displayName = 'MapPinIcon';
+
+export { ClockIcon, MapPinIcon };
 
 const CloseIcon = createIcon({
   Root: Svg,
@@ -1131,6 +1148,29 @@ const MessageCircleIcon = createIcon({
 MessageCircleIcon.displayName = 'MessageCircleIcon';
 
 export { MessageCircleIcon };
+
+const InstagramIcon = createIcon({
+  Root: Svg,
+  viewBox: '0 0 24 24',
+  path: (
+    <>
+      <Path
+        d="M17 2H7C4.24 2 2 4.24 2 7v10c0 2.76 2.24 5 5 5h10c2.76 0 5-2.24 5-5V7c0-2.76-2.24-5-5-5z"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </>
+  ),
+});
+InstagramIcon.displayName = 'InstagramIcon';
+export { InstagramIcon };
 
 const MoonIcon = createIcon({
   Root: Svg,

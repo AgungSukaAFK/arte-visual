@@ -17,6 +17,7 @@ import { SafeAreaView } from "@/components/ui/safe-area-view";
 import { Avatar, AvatarFallbackText } from "@/components/ui/avatar";
 import { Spinner } from "@/components/ui/spinner";
 import { Center } from "@/components/ui/center";
+import { getAppTheme } from "../../constants/theme";
 
 export default function ClientHome() {
   const { user } = useAuth();
@@ -24,7 +25,8 @@ export default function ClientHome() {
 
   // Deteksi tema agar ikon adaptif (hitam saat terang, putih saat gelap)
   const { colorScheme } = useColorScheme();
-  const iconColor = colorScheme === "dark" ? "#FFFFFF" : "#181718";
+  const theme = getAppTheme(colorScheme);
+  const iconColor = theme.icon;
 
   const [activeOrders, setActiveOrders] = useState<any[]>([]);
   const [historyOrders, setHistoryOrders] = useState<any[]>([]);
@@ -88,7 +90,7 @@ export default function ClientHome() {
             {/* Menu Aksi: Pembayaran & Notifikasi */}
             <HStack className="items-center gap-5">
               <Pressable
-                onPress={() => console.log("Buka menu pembayaran")}
+                onPress={() => router.push("/(client)/orders")}
                 className="active:opacity-60 relative"
               >
                 <Ionicons name="receipt-outline" size={24} color={iconColor} />
@@ -114,7 +116,7 @@ export default function ClientHome() {
             onPress={() => router.push("/(client)/calendar")}
             className="active:opacity-90 active:scale-[0.98] transition-transform"
           >
-            <Box className="bg-typography-900 rounded-3xl p-6 shadow-soft-2">
+            <Box className="bg-primary-700 rounded-3xl p-6 shadow-soft-2 border border-primary-600">
               <VStack className="gap-2">
                 <Box className="bg-background-0/20 self-start px-3 py-1 rounded-full mb-2">
                   <Text className="text-typography-0 font-bold text-[10px] uppercase tracking-widest">
@@ -180,13 +182,21 @@ export default function ClientHome() {
                     </HStack>
                     <VStack className="gap-1">
                       <HStack className="items-center gap-2">
-                        <Ionicons name="calendar" size={14} color="#737373" />
+                        <Ionicons
+                          name="calendar"
+                          size={14}
+                          color={theme.textSoft}
+                        />
                         <Text className="text-typography-500 text-sm font-medium">
                           {order.event_date}
                         </Text>
                       </HStack>
                       <HStack className="items-center gap-2">
-                        <Ionicons name="location" size={14} color="#737373" />
+                        <Ionicons
+                          name="location"
+                          size={14}
+                          color={theme.textSoft}
+                        />
                         <Text
                           className="text-typography-500 text-sm font-medium"
                           numberOfLines={1}

@@ -25,6 +25,7 @@ import {
   ModalFooter,
   ModalCloseButton,
 } from "@/components/ui/modal";
+import { getAppTheme, getCalendarTokens } from "../../constants/theme";
 
 // Konfigurasi Bahasa Indonesia
 LocaleConfig.locales["id"] = {
@@ -64,7 +65,8 @@ LocaleConfig.defaultLocale = "id";
 
 export default function ArteCalendar() {
   const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === "dark";
+  const theme = getAppTheme(colorScheme);
+  const calendar = getCalendarTokens(colorScheme);
 
   const [loading, setLoading] = useState(true);
   const [allBookings, setAllBookings] = useState<any[]>([]);
@@ -93,14 +95,13 @@ export default function ArteCalendar() {
       setAllBookings(data);
       let dates: any = {};
 
-      const confirmedColor = isDark ? "#FFFFFF" : "#181718";
-      const pendingColor = isDark ? "#737373" : "#A3A3A3";
-
       data.forEach((booking) => {
         dates[booking.event_date] = {
           marked: true,
           dotColor:
-            booking.status === "confirmed" ? confirmedColor : pendingColor,
+            booking.status === "confirmed"
+              ? calendar.confirmed
+              : calendar.pending,
           // Hapus disableTouchEvent agar semua tanggal bisa diklik untuk dilihat infonya
         };
       });
@@ -163,20 +164,20 @@ export default function ArteCalendar() {
                     ...markedDates[selectedDate],
                     selected: true,
                     disableTouchEvent: false,
-                    selectedColor: isDark ? "#333333" : "#F1F5F9", // Warna kotak saat dipilih
-                    selectedTextColor: isDark ? "#FFFFFF" : "#0F172A",
+                    selectedColor: calendar.selectedBg,
+                    selectedTextColor: calendar.selectedText,
                   },
                 }}
                 minDate={new Date().toDateString()}
                 theme={{
                   backgroundColor: "transparent",
                   calendarBackground: "transparent",
-                  textSectionTitleColor: isDark ? "#A3A3A3" : "#737373",
-                  todayTextColor: isDark ? "#60A5FA" : "#2563eb",
-                  dayTextColor: isDark ? "#E5E5E5" : "#181718",
-                  textDisabledColor: isDark ? "#404040" : "#D4D4D4",
-                  arrowColor: isDark ? "#FFFFFF" : "#181718",
-                  monthTextColor: isDark ? "#FFFFFF" : "#181718",
+                  textSectionTitleColor: calendar.subtitle,
+                  todayTextColor: calendar.today,
+                  dayTextColor: calendar.title,
+                  textDisabledColor: calendar.disabled,
+                  arrowColor: calendar.arrow,
+                  monthTextColor: calendar.title,
                   textMonthFontWeight: "900",
                   textDayHeaderFontWeight: "600",
                   textDayFontSize: 16, // Membesarkan angka hari
@@ -227,11 +228,7 @@ export default function ArteCalendar() {
               </Heading>
             </VStack>
             <ModalCloseButton>
-              <Ionicons
-                name="close"
-                size={24}
-                color={isDark ? "#FFF" : "#000"}
-              />
+              <Ionicons name="close" size={24} color={theme.icon} />
             </ModalCloseButton>
           </ModalHeader>
 
@@ -246,7 +243,7 @@ export default function ArteCalendar() {
                   <Ionicons
                     name="calendar-clear-outline"
                     size={32}
-                    color="#A3A3A3"
+                    color={theme.textSoft}
                     className="mb-2"
                   />
                   <Text className="text-typography-500 text-center text-sm">

@@ -4,11 +4,11 @@ import { Center } from "@/components/ui/center";
 import { Spinner } from "@/components/ui/spinner";
 import { useColorScheme } from "nativewind";
 import { Ionicons } from "@expo/vector-icons";
+import { getTabBarScreenOptions } from "../../constants/theme";
 
 export default function AdminLayout() {
   const { session, role, isLoading } = useAuth();
   const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === "dark";
 
   if (isLoading) {
     return (
@@ -23,27 +23,7 @@ export default function AdminLayout() {
   if (role === "client") return <Redirect href="/(client)" />;
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: isDark ? "#FFFFFF" : "#181718",
-        tabBarInactiveTintColor: isDark ? "#737373" : "#A3A3A3",
-        tabBarStyle: {
-          backgroundColor: isDark ? "#181718" : "#FFFFFF",
-          borderTopColor: isDark ? "#262626" : "#E5E5E5",
-          elevation: 0,
-          shadowOpacity: 0,
-          height: 65,
-          paddingBottom: 10,
-          paddingTop: 5,
-        },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: "bold",
-          marginTop: 2,
-        },
-      }}
-    >
+    <Tabs screenOptions={getTabBarScreenOptions(colorScheme)}>
       <Tabs.Screen
         name="index"
         options={{

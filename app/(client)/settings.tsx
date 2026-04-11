@@ -207,7 +207,7 @@ export default function SettingsScreen() {
       <HStack className="items-center justify-between py-3 border-b border-outline-100">
         <HStack className="items-center gap-3">
           <Box
-            className={`w-10 h-10 rounded-full items-center justify-center ${isDestructive ? "bg-error-50" : "bg-background-50"}`}
+            className={`w-10 h-10 rounded-full items-center justify-center ${isDestructive ? "bg-error-50 dark:bg-error-900" : "bg-background-50"}`}
           >
             <Ionicons
               name={icon}
@@ -217,7 +217,7 @@ export default function SettingsScreen() {
           </Box>
           <VStack>
             <Text
-              className={`font-bold ${isDestructive ? "text-error-600" : "text-typography-900"}`}
+              className={`font-bold ${isDestructive ? "text-error-600 dark:text-error-400" : "text-typography-900"}`}
             >
               {title}
             </Text>
@@ -226,7 +226,11 @@ export default function SettingsScreen() {
             )}
           </VStack>
         </HStack>
-        <Ionicons name="chevron-forward" size={20} color="#A3A3A3" />
+        <Ionicons
+          name="chevron-forward"
+          size={20}
+          color={isDark ? "#6B7280" : "#A3A3A3"}
+        />
       </HStack>
     </Pressable>
   );
@@ -392,7 +396,7 @@ export default function SettingsScreen() {
                 <Input
                   variant="outline"
                   size="xl"
-                  className="rounded-xl border-outline-300"
+                  className="rounded-xl border-outline-300 bg-background-0"
                 >
                   <InputField
                     value={editName}
@@ -408,7 +412,7 @@ export default function SettingsScreen() {
                 <Input
                   variant="outline"
                   size="xl"
-                  className="rounded-xl border-outline-300"
+                  className="rounded-xl border-outline-300 bg-background-0"
                 >
                   <InputField
                     value={editPhone}

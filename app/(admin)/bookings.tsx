@@ -135,7 +135,10 @@ export default function AdminBookingsScreen() {
   }) => {
     const statusColors: any = {
       pending: "bg-warning-100 text-warning-700",
-      confirmed: "bg-primary-100 text-primary-700",
+      confirmed: "bg-info-100 text-info-700",
+      awaiting_payment: "bg-error-100 text-error-700",
+      dp_paid: "bg-primary-100 text-primary-700",
+      fully_paid: "bg-indigo-100 text-indigo-700",
       completed: "bg-success-100 text-success-700",
       cancelled: "bg-error-100 text-error-700",
     };
@@ -147,11 +150,14 @@ export default function AdminBookingsScreen() {
           className={`absolute left-0 top-0 bottom-0 w-1.5 ${
             item.status === "pending"
               ? "bg-warning-500"
-              : item.status === "confirmed"
-                ? "bg-primary-500"
+              : item.status === "confirmed" ||
+                  item.status === "awaiting_payment"
+                ? "bg-info-500"
                 : item.status === "cancelled"
                   ? "bg-error-500"
-                  : "bg-success-500"
+                  : item.status === "completed"
+                    ? "bg-success-500"
+                    : "bg-primary-500"
           }`}
         />
 
@@ -230,18 +236,36 @@ export default function AdminBookingsScreen() {
               <Button
                 size="md"
                 className="flex-1 rounded-xl bg-typography-900 shadow-soft-1"
-                onPress={() => handleUpdateStatus(item.id, "confirmed")}
+                onPress={() => handleUpdateStatus(item.id, "awaiting_payment")}
                 disabled={processingId === item.id}
               >
                 {processingId === item.id ? (
                   <ButtonSpinner color="white" />
                 ) : (
                   <ButtonText className="font-bold text-typography-0">
-                    Terima (ACC)
+                    Acc Pesanan
                   </ButtonText>
                 )}
               </Button>
             </HStack>
+          )}
+
+          {/* Selesaikan Pesanan jika sudah Lunas */}
+          {item.status === "fully_paid" && (
+            <Button
+              size="md"
+              className="mt-2 rounded-xl bg-success-600 shadow-soft-1"
+              onPress={() => handleUpdateStatus(item.id, "completed")}
+              disabled={processingId === item.id}
+            >
+              {processingId === item.id ? (
+                <ButtonSpinner color="white" />
+              ) : (
+                <ButtonText className="font-bold text-typography-0 text-center w-full">
+                  Konfirmasi Pesanan Selesai
+                </ButtonText>
+              )}
+            </Button>
           )}
         </VStack>
       </Box>
