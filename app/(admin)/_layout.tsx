@@ -5,6 +5,8 @@ import { Spinner } from "@/components/ui/spinner";
 import { useColorScheme } from "nativewind";
 import { Ionicons } from "@expo/vector-icons";
 import { getTabBarScreenOptions } from "../../constants/theme";
+import { View } from "react-native";
+import DiscussionFAB from "@/components/discussion/DiscussionFAB";
 
 export default function AdminLayout() {
   const { session, role, isLoading } = useAuth();
@@ -23,56 +25,58 @@ export default function AdminLayout() {
   if (role === "client") return <Redirect href="/(client)" />;
 
   return (
-    <Tabs screenOptions={getTabBarScreenOptions(colorScheme)}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Dashboard",
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="grid-outline" size={24} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="bookings"
-        options={{
-          title: "Pesanan",
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="calendar-outline" size={24} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="packages"
-        options={{
-          title: "Paket",
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="cube-outline" size={24} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="gallery"
-        options={{
-          title: "Galeri",
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="images-outline" size={24} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="users"
-        options={{
-          title: "Klien",
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="people-outline" size={24} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen name="orders" options={{ href: null }} />
-
-      {/* Tambahkan baris ini di bawahnya */}
-      <Tabs.Screen name="settings" options={{ href: null }} />
-    </Tabs>
+    <View style={{ flex: 1 }}>
+      <Tabs screenOptions={getTabBarScreenOptions(colorScheme)}>
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: "Dashboard",
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="grid-outline" size={24} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="bookings"
+          options={{
+            title: "Pesanan",
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="calendar-outline" size={24} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="packages"
+          options={{
+            title: "Paket",
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="cube-outline" size={24} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="gallery"
+          options={{
+            title: "Galeri",
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="images-outline" size={24} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="users"
+          options={{
+            title: "Klien",
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="people-outline" size={24} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen name="orders" options={{ href: null }} />
+        <Tabs.Screen name="settings" options={{ href: null }} />
+        <Tabs.Screen name="discussion" options={{ href: null }} />
+      </Tabs>
+      <DiscussionFAB />
+    </View>
   );
 }

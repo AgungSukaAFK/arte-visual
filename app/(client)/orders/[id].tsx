@@ -358,7 +358,7 @@ export default function OrderDetailScreen() {
         amount: invoice.amount,
       });
 
-      const data = await invokeEdgeFunction<{ token?: string }>(
+      const data = await invokeEdgeFunction<{ token?: string; error?: string }>(
         "midtrans-token",
         { invoice_id: invoice.id },
       );

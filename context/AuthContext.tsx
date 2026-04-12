@@ -1,7 +1,14 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { Redirect } from "expo-router";
+import type { OnlineUser } from "@/types/discussion";
 
 // Tentukan tipe data role
 type Role = "client" | "admin" | null;
@@ -20,6 +27,7 @@ type AuthContextType = {
   role: Role;
   profile: Profile;
   isLoading: boolean;
+  onlineUsers: OnlineUser[];
 };
 
 // Inisialisasi Context
@@ -29,6 +37,7 @@ const AuthContext = createContext<AuthContextType>({
   role: null,
   profile: null,
   isLoading: true,
+  onlineUsers: [],
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -39,6 +48,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [role, setRole] = useState<Role>(null);
   const [profile, setProfile] = useState<Profile>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
+  const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(
+    null,
+  );
 
   useEffect(() => {
     // 1. Cek sesi saat aplikasi pertama kali dibuka
@@ -96,8 +109,67 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  useEffect(() => {
+    if (!session?.user || !profile?.id || !profile.role) {
+      if (presenceChannelRef.current) {
+        supabase.removeChannel(presenceChannelRef.current);
+        presenceChannelRef.current = null;
+      }
+      setOnlineUsers([]);
+      return;
+    }
+
+    if (presenceChannelRef.current) {
+      supabase.removeChannel(presenceChannelRef.current);
+      presenceChannelRef.current = null;
+    }
+
+    const channel = supabase
+      .channel("online-users")
+      .on("presence", { event: "sync" }, () => {
+        const state = channel.presenceState();
+        const users = Object.values(state)
+          .flatMap((entries) => entries as Array<Record<string, unknown>>)
+          .filter(
+            (entry): entry is Record<string, unknown> & OnlineUser =>
+              typeof entry.user_id === "string" &&
+              (entry.role === "client" || entry.role === "admin"),
+          )
+          .map((entry) => ({
+            user_id: entry.user_id,
+            role: entry.role,
+            full_name:
+              typeof entry.full_name === "string" || entry.full_name === null
+                ? entry.full_name
+                : null,
+          }));
+        setOnlineUsers(users);
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await channel.track({
+            user_id: profile.id,
+            role: profile.role,
+            full_name: profile.full_name,
+          });
+        }
+      });
+
+    presenceChannelRef.current = channel;
+
+    return () => {
+      if (presenceChannelRef.current) {
+        supabase.removeChannel(presenceChannelRef.current);
+        presenceChannelRef.current = null;
+      }
+      setOnlineUsers([]);
+    };
+  }, [profile?.full_name, profile?.id, profile?.role, session?.user]);
+
   return (
-    <AuthContext.Provider value={{ session, user, role, profile, isLoading }}>
+    <AuthContext.Provider
+      value={{ session, user, role, profile, isLoading, onlineUsers }}
+    >
       {children}
     </AuthContext.Provider>
   );

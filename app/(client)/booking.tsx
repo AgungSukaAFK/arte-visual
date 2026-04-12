@@ -57,8 +57,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import * as Location from "expo-location";
 import { getAppTheme } from "../../constants/theme";
 
-const NativeMaps =
-  Platform.OS === "web" ? null : require("react-native-maps");
+const NativeMaps = Platform.OS === "web" ? null : require("react-native-maps");
 const MapViewComponent = NativeMaps?.default;
 const MarkerComponent = NativeMaps?.Marker;
 
