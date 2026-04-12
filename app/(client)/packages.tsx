@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ScrollView } from "react-native";
+import { ScrollView, Image as RNImage } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
@@ -141,6 +141,16 @@ export default function PackageListScreen() {
                     key={pkg.id}
                     className="bg-background-0 rounded-3xl p-6 shadow-soft-2 border border-outline-100 relative overflow-hidden"
                   >
+                    {pkg.image_url ? (
+                      <Box className="mb-4 overflow-hidden rounded-2xl border border-outline-100 bg-background-50">
+                        <RNImage
+                          source={{ uri: pkg.image_url }}
+                          style={{ width: "100%", height: 180 }}
+                          resizeMode="cover"
+                        />
+                      </Box>
+                    ) : null}
+
                     {/* Efek Garis Desain di ujung card agar mewah */}
                     <Box className="absolute top-0 right-0 w-16 h-16 bg-primary-500/10 rounded-bl-[60px]" />
 

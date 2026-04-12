@@ -48,11 +48,19 @@ export default function OrdersScreen() {
   const getStatusConfig = (status: string) => {
     switch (status) {
       case "pending":
-        return { label: "Menunggu Konfirmasi", color: "warning", icon: "time" };
+        return {
+          label: "Menunggu Konfirmasi Admin",
+          color: "warning",
+          icon: "time",
+        };
       case "confirmed":
-        return { label: "Pesanan Diterima", color: "info", icon: "checkmark-circle" };
+        return {
+          label: "Diterima - Silakan Bayar",
+          color: "info",
+          icon: "checkmark-circle",
+        };
       case "awaiting_payment":
-        return { label: "Belum Bayar", color: "error", icon: "card" };
+        return { label: "Menunggu Pembayaran", color: "error", icon: "card" };
       case "dp_paid":
         return { label: "DP Lunas", color: "primary", icon: "wallet" };
       case "fully_paid":
@@ -90,13 +98,17 @@ export default function OrdersScreen() {
         <Center className="flex-1 px-8">
           <Box className="bg-background-0 p-8 rounded-3xl items-center border border-outline-100 border-dashed">
             <Ionicons name="receipt-outline" size={64} color="#D1D5DB" />
-            <Text className="text-typography-600 font-bold text-center mt-4">Belum Ada Pesanan</Text>
-            <Text className="text-typography-400 text-center text-sm mt-1">Abadikan momen berhargamu hari ini dengan kami.</Text>
-            <TouchableOpacity 
-                onPress={() => router.push("/(client)/calendar")}
-                className="bg-typography-900 px-6 py-3 rounded-xl mt-6"
+            <Text className="text-typography-600 font-bold text-center mt-4">
+              Belum Ada Pesanan
+            </Text>
+            <Text className="text-typography-400 text-center text-sm mt-1">
+              Abadikan momen berhargamu hari ini dengan kami.
+            </Text>
+            <TouchableOpacity
+              onPress={() => router.push("/(client)/calendar")}
+              className="bg-typography-900 px-6 py-3 rounded-xl mt-6"
             >
-                <Text className="text-white font-bold">Mulai Booking</Text>
+              <Text className="text-white font-bold">Mulai Booking</Text>
             </TouchableOpacity>
           </Box>
         </Center>
@@ -111,47 +123,82 @@ export default function OrdersScreen() {
               return (
                 <TouchableOpacity
                   key={item.id}
-                  onPress={() => router.push({
-                    pathname: "/(client)/orders/[id]",
-                    params: { id: item.id }
-                  })}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(client)/orders/[id]",
+                      params: { id: item.id },
+                    })
+                  }
                   activeOpacity={0.9}
                 >
                   <Box className="bg-background-0 rounded-3xl p-5 border border-outline-100 shadow-soft-1">
                     <HStack className="justify-between items-start mb-4">
                       <VStack className="flex-1 mr-3">
-                        <Heading className="text-lg font-black text-typography-900" numberOfLines={1}>
+                        <Heading
+                          className="text-lg font-black text-typography-900"
+                          numberOfLines={1}
+                        >
                           {item.packages?.name || "Paket Layanan"}
                         </Heading>
                         <Text className="text-typography-400 text-xs font-bold uppercase tracking-widest mt-0.5">
                           ID: {item.id.slice(0, 8).toUpperCase()}
                         </Text>
                       </VStack>
-                      <Badge action={status.color as any} variant="solid" className="rounded-lg px-2 py-1">
-                        <BadgeText className="text-[10px] uppercase font-black">{status.label}</BadgeText>
+                      <Badge
+                        action={status.color as any}
+                        variant="solid"
+                        className="rounded-lg px-2 py-1"
+                      >
+                        <BadgeText className="text-[10px] uppercase font-black">
+                          {status.label}
+                        </BadgeText>
                       </Badge>
                     </HStack>
 
                     <VStack className="gap-3 bg-background-50 p-4 rounded-2xl border border-outline-50">
                       <HStack className="items-center gap-3">
-                        <Ionicons name="calendar-outline" size={18} color="#737373" />
-                        <Text className="text-typography-700 text-sm font-semibold">{item.event_date}</Text>
+                        <Ionicons
+                          name="calendar-outline"
+                          size={18}
+                          color="#737373"
+                        />
+                        <Text className="text-typography-700 text-sm font-semibold">
+                          {item.event_date}
+                        </Text>
                       </HStack>
                       <HStack className="items-center gap-3">
-                        <Ionicons name="cash-outline" size={18} color="#737373" />
-                        <Text className="text-typography-900 text-sm font-black">{formatRupiah(item.packages?.price)}</Text>
+                        <Ionicons
+                          name="cash-outline"
+                          size={18}
+                          color="#737373"
+                        />
+                        <Text className="text-typography-900 text-sm font-black">
+                          {formatRupiah(item.packages?.price)}
+                        </Text>
                       </HStack>
                     </VStack>
 
                     <HStack className="mt-4 justify-between items-center">
-                        <HStack className="items-center gap-1">
-                            <Ionicons name={status.icon as any} size={14} color="#737373" />
-                            <Text className="text-typography-500 text-[10px] font-bold">Status diperbarui baru saja</Text>
-                        </HStack>
-                        <HStack className="items-center gap-1">
-                            <Text className="text-primary-600 text-xs font-black">Lihat Detail</Text>
-                            <Ionicons name="chevron-forward" size={12} color="#0284c7" />
-                        </HStack>
+                      <HStack className="items-center gap-1">
+                        <Ionicons
+                          name={status.icon as any}
+                          size={14}
+                          color="#737373"
+                        />
+                        <Text className="text-typography-500 text-[10px] font-bold">
+                          Status diperbarui baru saja
+                        </Text>
+                      </HStack>
+                      <HStack className="items-center gap-1">
+                        <Text className="text-primary-600 text-xs font-black">
+                          Lihat Detail
+                        </Text>
+                        <Ionicons
+                          name="chevron-forward"
+                          size={12}
+                          color="#0284c7"
+                        />
+                      </HStack>
                     </HStack>
                   </Box>
                 </TouchableOpacity>

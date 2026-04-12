@@ -73,7 +73,7 @@ export default function ClientLayout() {
       {/* Halaman yang TIDAK muncul di Tab Bar */}
       <Tabs.Screen name="booking" options={{ href: null }} />
       <Tabs.Screen name="orders" options={{ href: null }} />
-      <Tabs.Screen name="invoices" options={{ href: null }} />
+      <Tabs.Screen name="invoices/index" options={{ href: null }} />
       <Tabs.Screen name="orders/index" options={{ href: null }} />
       <Tabs.Screen name="orders/[id]" options={{ href: null }} />
       <Tabs.Screen name="orders/payment" options={{ href: null }} />

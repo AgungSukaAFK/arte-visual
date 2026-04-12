@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ScrollView, Alert } from "react-native";
+import { ScrollView, Alert, Image as RNImage } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
@@ -50,6 +50,7 @@ export default function AdminPackagesScreen() {
   const [price, setPrice] = useState("");
   const [originalPrice, setOriginalPrice] = useState("");
   const [badge, setBadge] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [features, setFeatures] = useState("");
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -120,6 +121,7 @@ export default function AdminPackagesScreen() {
       setPrice(pkg.price.toString());
       setOriginalPrice(pkg.original_price ? pkg.original_price.toString() : "");
       setBadge(pkg.badge || "");
+      setImageUrl(pkg.image_url || "");
 
       const parsedFeatures =
         typeof pkg.features === "string"
@@ -134,6 +136,7 @@ export default function AdminPackagesScreen() {
       setPrice("");
       setOriginalPrice("");
       setBadge("");
+      setImageUrl("");
       setFeatures("");
     }
     setShowFormModal(true);
@@ -159,6 +162,7 @@ export default function AdminPackagesScreen() {
       price: Number(price),
       original_price: originalPrice ? Number(originalPrice) : null,
       badge: badge || null,
+      image_url: imageUrl.trim() || null,
       features: JSON.stringify(featuresArray),
     };
 
@@ -260,6 +264,16 @@ export default function AdminPackagesScreen() {
                   key={pkg.id}
                   className={`bg-background-0 rounded-3xl p-5 shadow-soft-1 border ${pkg.is_active ? "border-outline-100" : "border-error-200 opacity-60"}`}
                 >
+                  {pkg.image_url ? (
+                    <Box className="mb-4 overflow-hidden rounded-2xl border border-outline-100 bg-background-50">
+                      <RNImage
+                        source={{ uri: pkg.image_url }}
+                        style={{ width: "100%", height: 150 }}
+                        resizeMode="cover"
+                      />
+                    </Box>
+                  ) : null}
+
                   <HStack className="justify-between items-start mb-2">
                     <VStack className="gap-1 flex-1 pr-4">
                       {pkg.badge && (
@@ -438,6 +452,35 @@ export default function AdminPackagesScreen() {
                     className="px-4 text-typography-900"
                   />
                 </Input>
+              </VStack>
+
+              <VStack className="gap-2">
+                <Text className="text-typography-900 font-bold text-sm">
+                  URL Gambar Paket
+                </Text>
+                <Input
+                  variant="outline"
+                  size="xl"
+                  className="rounded-xl border-outline-300"
+                >
+                  <InputField
+                    value={imageUrl}
+                    onChangeText={setImageUrl}
+                    placeholder="https://..."
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    className="px-4 text-typography-900"
+                  />
+                </Input>
+                {imageUrl ? (
+                  <Box className="mt-1 overflow-hidden rounded-xl border border-outline-100 bg-background-50">
+                    <RNImage
+                      source={{ uri: imageUrl }}
+                      style={{ width: "100%", height: 140 }}
+                      resizeMode="cover"
+                    />
+                  </Box>
+                ) : null}
               </VStack>
 
               <VStack className="gap-2">

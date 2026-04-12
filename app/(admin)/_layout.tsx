@@ -69,6 +69,7 @@ export default function AdminLayout() {
           ),
         }}
       />
+      <Tabs.Screen name="orders" options={{ href: null }} />
 
       {/* Tambahkan baris ini di bawahnya */}
       <Tabs.Screen name="settings" options={{ href: null }} />

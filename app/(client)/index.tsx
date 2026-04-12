@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { ScrollView } from "react-native";
+import React, { useState } from "react";
+import { ScrollView, TouchableOpacity } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
@@ -30,7 +30,61 @@ export default function ClientHome() {
 
   const [activeOrders, setActiveOrders] = useState<any[]>([]);
   const [historyOrders, setHistoryOrders] = useState<any[]>([]);
+  const [unpaidInvoiceCount, setUnpaidInvoiceCount] = useState(0);
   const [loading, setLoading] = useState(true);
+
+  const getStatusMeta = (status: string) => {
+    switch (status) {
+      case "pending":
+        return {
+          label: "Menunggu Konfirmasi",
+          badgeBg: "bg-warning-100",
+          badgeText: "text-warning-700",
+        };
+      case "confirmed":
+        return {
+          label: "Dikonfirmasi",
+          badgeBg: "bg-primary-100",
+          badgeText: "text-primary-700",
+        };
+      case "awaiting_payment":
+        return {
+          label: "Menunggu Pembayaran",
+          badgeBg: "bg-error-100",
+          badgeText: "text-error-700",
+        };
+      case "dp_paid":
+        return {
+          label: "DP Dibayar",
+          badgeBg: "bg-primary-100",
+          badgeText: "text-primary-700",
+        };
+      case "fully_paid":
+        return {
+          label: "Lunas",
+          badgeBg: "bg-success-100",
+          badgeText: "text-success-700",
+        };
+      case "completed":
+        return {
+          label: "Selesai",
+          badgeBg: "bg-success-100",
+          badgeText: "text-success-700",
+        };
+      case "cancelled":
+        return {
+          label: "Dibatalkan",
+          badgeBg: "bg-error-100",
+          badgeText: "text-error-700",
+        };
+      default:
+        return {
+          label: status,
+          badgeBg: "bg-background-100",
+          badgeText: "text-typography-700",
+        };
+    }
+  };
 
   // Pakai useFocusEffect agar data di-refresh setiap kali user kembali ke tab Home
   useFocusEffect(
@@ -41,24 +95,50 @@ export default function ClientHome() {
 
   const fetchOrders = async () => {
     setLoading(true);
-    // Mengambil pesanan dan join dengan tabel packages untuk dapat nama paketnya
-    const { data, error } = await supabase
+    const { data: bookingData, error: bookingError } = await supabase
       .from("bookings")
       .select("*, packages(name)")
       .eq("client_id", user?.id)
       .order("event_date", { ascending: true });
 
-    if (data) {
-      // Memilah data berdasarkan status
+    const { data: invoiceData, error: invoiceError } = await supabase
+      .from("invoices")
+      .select("id, status, bookings!inner(client_id)")
+      .eq("bookings.client_id", user?.id)
+      .order("created_at", { ascending: false });
+
+    if (bookingError) {
+      console.error("[ClientHome] Failed to fetch bookings", bookingError);
+      setActiveOrders([]);
+      setHistoryOrders([]);
+    }
+
+    if (bookingData && !bookingError) {
+      // Semua status selain completed/cancelled dianggap masih aktif dipantau
       setActiveOrders(
-        data.filter((b) => b.status === "pending" || b.status === "confirmed"),
+        bookingData.filter(
+          (b) => b.status !== "completed" && b.status !== "cancelled",
+        ),
       );
       setHistoryOrders(
-        data.filter(
+        bookingData.filter(
           (b) => b.status === "completed" || b.status === "cancelled",
         ),
       );
     }
+
+    if (invoiceError) {
+      console.error("[ClientHome] Failed to fetch invoices", invoiceError);
+      setUnpaidInvoiceCount(0);
+      setLoading(false);
+      return;
+    }
+
+    setUnpaidInvoiceCount(
+      (invoiceData || []).filter((invoice) => invoice.status === "unpaid")
+        .length,
+    );
+
     setLoading(false);
   };
 
@@ -90,12 +170,13 @@ export default function ClientHome() {
             {/* Menu Aksi: Pembayaran & Notifikasi */}
             <HStack className="items-center gap-5">
               <Pressable
-                onPress={() => router.push("/(client)/orders")}
+                onPress={() => router.push("/(client)/invoices")}
                 className="active:opacity-60 relative"
               >
                 <Ionicons name="receipt-outline" size={24} color={iconColor} />
-                {/* Indikator Merah Mini (Dummy: untuk tagihan belum lunas) */}
-                <Box className="absolute -top-1 -right-1 w-3 h-3 bg-error-500 rounded-full border-2 border-background-50" />
+                {unpaidInvoiceCount > 0 ? (
+                  <Box className="absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-background-50 bg-error-500" />
+                ) : null}
               </Pressable>
 
               <Pressable
@@ -158,55 +239,73 @@ export default function ClientHome() {
               </Box>
             ) : (
               <VStack className="gap-4">
-                {activeOrders.map((order) => (
-                  <Box
-                    key={order.id}
-                    className="bg-background-0 p-5 rounded-2xl border border-outline-100 shadow-soft-1"
-                  >
-                    <HStack className="justify-between items-center mb-3">
-                      <Heading
-                        className="text-typography-900 font-extrabold text-base flex-1"
-                        numberOfLines={1}
-                      >
-                        {order.packages?.name || "Paket Jasa"}
-                      </Heading>
-                      <Box
-                        className={`px-2 py-1 rounded-md ${order.status === "confirmed" ? "bg-primary-100" : "bg-warning-100"}`}
-                      >
-                        <Text
-                          className={`text-[10px] font-bold uppercase ${order.status === "confirmed" ? "text-primary-700" : "text-warning-700"}`}
-                        >
-                          {order.status}
-                        </Text>
-                      </Box>
-                    </HStack>
-                    <VStack className="gap-1">
-                      <HStack className="items-center gap-2">
-                        <Ionicons
-                          name="calendar"
-                          size={14}
-                          color={theme.textSoft}
-                        />
-                        <Text className="text-typography-500 text-sm font-medium">
-                          {order.event_date}
-                        </Text>
-                      </HStack>
-                      <HStack className="items-center gap-2">
-                        <Ionicons
-                          name="location"
-                          size={14}
-                          color={theme.textSoft}
-                        />
-                        <Text
-                          className="text-typography-500 text-sm font-medium"
+                {activeOrders.map((order) => {
+                  const statusMeta = getStatusMeta(order.status);
+                  return (
+                    <Box
+                      key={order.id}
+                      className="bg-background-0 p-5 rounded-2xl border border-outline-100 shadow-soft-1"
+                    >
+                      <HStack className="justify-between items-center mb-3">
+                        <Heading
+                          className="text-typography-900 font-extrabold text-base flex-1"
                           numberOfLines={1}
                         >
-                          {order.location}
-                        </Text>
+                          {order.packages?.name || "Paket Jasa"}
+                        </Heading>
+                        <Box
+                          className={`px-2 py-1 rounded-md ${statusMeta.badgeBg}`}
+                        >
+                          <Text
+                            className={`text-[10px] font-bold uppercase ${statusMeta.badgeText}`}
+                          >
+                            {statusMeta.label}
+                          </Text>
+                        </Box>
                       </HStack>
-                    </VStack>
-                  </Box>
-                ))}
+                      <VStack className="gap-1">
+                        <HStack className="items-center gap-2">
+                          <Ionicons
+                            name="calendar"
+                            size={14}
+                            color={theme.textSoft}
+                          />
+                          <Text className="text-typography-500 text-sm font-medium">
+                            {order.event_date}
+                          </Text>
+                        </HStack>
+                        <HStack className="items-center gap-2">
+                          <Ionicons
+                            name="location"
+                            size={14}
+                            color={theme.textSoft}
+                          />
+                          <Text
+                            className="text-typography-500 text-sm font-medium"
+                            numberOfLines={1}
+                          >
+                            {order.location}
+                          </Text>
+                        </HStack>
+                      </VStack>
+                      <HStack className="justify-end mt-4">
+                        <TouchableOpacity
+                          onPress={() =>
+                            router.push({
+                              pathname: "/(client)/orders/[id]",
+                              params: { id: order.id },
+                            })
+                          }
+                          className="rounded-xl border border-outline-200 bg-background-50 px-4 py-2"
+                        >
+                          <Text className="text-xs font-bold text-primary-600">
+                            Lihat Detail
+                          </Text>
+                        </TouchableOpacity>
+                      </HStack>
+                    </Box>
+                  );
+                })}
               </VStack>
             )}
           </VStack>
@@ -229,27 +328,47 @@ export default function ClientHome() {
               </Box>
             ) : (
               <VStack className="gap-4">
-                {historyOrders.map((order) => (
-                  <Box
-                    key={order.id}
-                    className="bg-background-50 p-5 rounded-2xl border border-outline-100 opacity-70"
-                  >
-                    <HStack className="justify-between items-center mb-2">
-                      <Heading
-                        className="text-typography-900 font-extrabold text-base flex-1"
-                        numberOfLines={1}
-                      >
-                        {order.packages?.name || "Paket Jasa"}
-                      </Heading>
-                      <Text className="text-success-600 text-xs font-bold uppercase">
-                        {order.status}
+                {historyOrders.map((order) => {
+                  const statusMeta = getStatusMeta(order.status);
+                  return (
+                    <Box
+                      key={order.id}
+                      className="bg-background-50 p-5 rounded-2xl border border-outline-100 opacity-70"
+                    >
+                      <HStack className="justify-between items-center mb-2">
+                        <Heading
+                          className="text-typography-900 font-extrabold text-base flex-1"
+                          numberOfLines={1}
+                        >
+                          {order.packages?.name || "Paket Jasa"}
+                        </Heading>
+                        <Text
+                          className={`text-xs font-bold uppercase ${statusMeta.badgeText}`}
+                        >
+                          {statusMeta.label}
+                        </Text>
+                      </HStack>
+                      <Text className="text-typography-500 text-sm">
+                        Selesai pada: {order.event_date}
                       </Text>
-                    </HStack>
-                    <Text className="text-typography-500 text-sm">
-                      Selesai pada: {order.event_date}
-                    </Text>
-                  </Box>
-                ))}
+                      <HStack className="justify-end mt-4">
+                        <TouchableOpacity
+                          onPress={() =>
+                            router.push({
+                              pathname: "/(client)/orders/[id]",
+                              params: { id: order.id },
+                            })
+                          }
+                          className="rounded-xl border border-outline-200 bg-background-0 px-4 py-2"
+                        >
+                          <Text className="text-xs font-bold text-primary-600">
+                            Lihat Detail
+                          </Text>
+                        </TouchableOpacity>
+                      </HStack>
+                    </Box>
+                  );
+                })}
               </VStack>
             )}
           </VStack>

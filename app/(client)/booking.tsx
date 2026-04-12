@@ -54,9 +54,13 @@ import {
 import { Badge, BadgeText, BadgeIcon } from "@/components/ui/badge";
 
 import DateTimePicker from "@react-native-community/datetimepicker";
-import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import { getAppTheme } from "../../constants/theme";
+
+const NativeMaps =
+  Platform.OS === "web" ? null : require("react-native-maps");
+const MapViewComponent = NativeMaps?.default;
+const MarkerComponent = NativeMaps?.Marker;
 
 export default function BookingScreen() {
   const { date, packageId } = useLocalSearchParams<{
@@ -92,7 +96,7 @@ export default function BookingScreen() {
   const [showPicker, setShowPicker] = useState(false);
 
   // Location State
-  const mapRef = useRef<MapView>(null);
+  const mapRef = useRef<any>(null);
   const searchTimeout = useRef<any>(null);
   const [mapAddress, setMapAddress] = useState(""); // Autofilled from Maps
   const [location, setLocation] = useState(""); // Manual details from client
@@ -1084,42 +1088,61 @@ export default function BookingScreen() {
                 )}
               </View>
 
-              <MapView
-                ref={mapRef}
-                style={StyleSheet.absoluteFillObject}
-                initialRegion={mapRegion}
-                onPress={async (e) => {
-                  const coords = e.nativeEvent.coordinate;
-                  setLocationCoords(coords);
-                  const addr = await fetchAddressFromCoords(
-                    coords.latitude,
-                    coords.longitude,
-                  );
-                  if (addr) setSearchQuery(addr);
-                }}
-                onPoiClick={async (e) => {
-                  const { coordinate, name } = e.nativeEvent;
-                  setLocationCoords(coordinate);
-                  const addr = await fetchAddressFromCoords(
-                    coordinate.latitude,
-                    coordinate.longitude,
-                  );
-                  setSearchQuery(addr || name);
-                  mapRef.current?.animateToRegion(
-                    {
-                      ...coordinate,
-                      latitudeDelta: 0.005,
-                      longitudeDelta: 0.005,
-                    },
-                    600,
-                  );
-                }}
-                provider={Platform.OS === "android" ? "google" : undefined}
-                showsUserLocation={true}
-                showsMyLocationButton={false}
-              >
-                {locationCoords && <Marker coordinate={locationCoords} />}
-              </MapView>
+              {MapViewComponent ? (
+                <MapViewComponent
+                  ref={mapRef}
+                  style={StyleSheet.absoluteFillObject}
+                  initialRegion={mapRegion}
+                  onPress={async (e: any) => {
+                    const coords = e.nativeEvent.coordinate;
+                    setLocationCoords(coords);
+                    const addr = await fetchAddressFromCoords(
+                      coords.latitude,
+                      coords.longitude,
+                    );
+                    if (addr) setSearchQuery(addr);
+                  }}
+                  onPoiClick={async (e: any) => {
+                    const { coordinate, name } = e.nativeEvent;
+                    setLocationCoords(coordinate);
+                    const addr = await fetchAddressFromCoords(
+                      coordinate.latitude,
+                      coordinate.longitude,
+                    );
+                    setSearchQuery(addr || name);
+                    mapRef.current?.animateToRegion(
+                      {
+                        ...coordinate,
+                        latitudeDelta: 0.005,
+                        longitudeDelta: 0.005,
+                      },
+                      600,
+                    );
+                  }}
+                  provider={Platform.OS === "android" ? "google" : undefined}
+                  showsUserLocation={true}
+                  showsMyLocationButton={false}
+                >
+                  {locationCoords && MarkerComponent ? (
+                    <MarkerComponent coordinate={locationCoords} />
+                  ) : null}
+                </MapViewComponent>
+              ) : (
+                <View
+                  style={{
+                    ...StyleSheet.absoluteFillObject,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    paddingHorizontal: 24,
+                    backgroundColor: bgLighter,
+                  }}
+                >
+                  <Text className="text-center text-sm text-typography-500">
+                    Peta interaktif tersedia di Android/iOS. Silakan isi detail
+                    lokasi secara manual untuk versi web.
+                  </Text>
+                </View>
+              )}
 
               {/* Float Buttons */}
               <TouchableOpacity
