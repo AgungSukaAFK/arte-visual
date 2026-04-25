@@ -6,7 +6,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
 import { getAppTheme } from "@/constants/theme";
 
-// Gluestack UI Components
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Text } from "@/components/ui/text";
@@ -18,18 +17,83 @@ import { Pressable } from "@/components/ui/pressable";
 import { Center } from "@/components/ui/center";
 import { Spinner } from "@/components/ui/spinner";
 
+type FilterTab =
+  | "all"
+  | "pending"
+  | "confirmed"
+  | "awaiting_payment"
+  | "dp_paid"
+  | "fully_paid"
+  | "completed"
+  | "cancelled";
+
+const FILTER_TABS: { key: FilterTab; label: string }[] = [
+  { key: "all", label: "Semua" },
+  { key: "pending", label: "Menunggu Acc" },
+  { key: "confirmed", label: "Diterima" },
+  { key: "awaiting_payment", label: "Menunggu Bayar" },
+  { key: "dp_paid", label: "DP Masuk" },
+  { key: "fully_paid", label: "Lunas" },
+  { key: "completed", label: "Selesai" },
+  { key: "cancelled", label: "Ditolak" },
+];
+
+const STATUS_CONFIG: Record<
+  string,
+  { label: string; badgeClass: string; textClass: string; accent: string }
+> = {
+  pending: {
+    label: "Menunggu Acc",
+    badgeClass: "bg-warning-100 border-warning-200",
+    textClass: "text-warning-700",
+    accent: "bg-warning-500",
+  },
+  confirmed: {
+    label: "Diterima",
+    badgeClass: "bg-info-100 border-info-200",
+    textClass: "text-info-700",
+    accent: "bg-info-500",
+  },
+  awaiting_payment: {
+    label: "Menunggu Bayar",
+    badgeClass: "bg-orange-100 border-orange-200",
+    textClass: "text-orange-700",
+    accent: "bg-orange-500",
+  },
+  dp_paid: {
+    label: "DP Masuk",
+    badgeClass: "bg-primary-100 border-primary-200",
+    textClass: "text-primary-700",
+    accent: "bg-primary-500",
+  },
+  fully_paid: {
+    label: "Lunas",
+    badgeClass: "bg-indigo-100 border-indigo-200",
+    textClass: "text-indigo-700",
+    accent: "bg-indigo-500",
+  },
+  completed: {
+    label: "Selesai",
+    badgeClass: "bg-success-100 border-success-200",
+    textClass: "text-success-700",
+    accent: "bg-success-500",
+  },
+  cancelled: {
+    label: "Ditolak",
+    badgeClass: "bg-error-100 border-error-200",
+    textClass: "text-error-700",
+    accent: "bg-error-500",
+  },
+};
+
 export default function AdminBookingsScreen() {
-  const [pendingBookings, setPendingBookings] = useState<any[]>([]);
-  const [otherBookings, setOtherBookings] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<
-    "pending" | "paid" | "completed" | "all"
-  >("all");
+  const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const { colorScheme } = useColorScheme();
   const theme = getAppTheme(colorScheme);
 
-  // Auto-refresh setiap kali tab dibuka
   useFocusEffect(
     React.useCallback(() => {
       fetchBookings();
@@ -38,82 +102,58 @@ export default function AdminBookingsScreen() {
 
   const fetchBookings = async () => {
     setLoading(true);
-
-    // Tarik data booking + relasi profil (nama klien) + relasi paket (nama paket)
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("bookings")
-      .select(
-        `
-        *,
-        profiles(full_name, phone_number),
-        packages(name)
-      `,
-      )
-      .order("created_at", { ascending: true });
+      .select(`*, profiles(full_name, phone_number), packages(name)`)
+      .order("created_at", { ascending: false });
 
-    if (data) {
-      // Pisahkan mana yang butuh aksi (pending) dan mana yang sudah diproses
-      setPendingBookings(data.filter((b) => b.status === "pending"));
-      setOtherBookings(data.filter((b) => b.status !== "pending"));
-    }
+    if (data) setBookings(data);
     setLoading(false);
   };
 
-  // Komponen Card untuk pesanan agar rapi
+  const filteredBookings = (() => {
+    let result =
+      activeTab === "all"
+        ? bookings
+        : bookings.filter((b) => b.status === activeTab);
+
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      result = result.filter((b) => {
+        const text = [
+          b.id,
+          b.status,
+          b.location,
+          b.event_date,
+          b.profiles?.full_name,
+          b.profiles?.phone_number,
+          b.packages?.name,
+          b.notes,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return text.includes(q);
+      });
+    }
+    return result;
+  })();
+
   const BookingCard = ({ item }: { item: any }) => {
-    const statusConfig: Record<
-      string,
-      { label: string; badgeClass: string; textClass: string; accent: string }
-    > = {
-      pending: {
-        label: "Menunggu Acc",
-        badgeClass: "bg-warning-100 border-warning-200",
-        textClass: "text-warning-700",
-        accent: "bg-warning-500",
-      },
-      confirmed: {
-        label: "Diterima",
-        badgeClass: "bg-info-100 border-info-200",
-        textClass: "text-info-700",
-        accent: "bg-info-500",
-      },
-      awaiting_payment: {
-        label: "Menunggu Bayar",
-        badgeClass: "bg-orange-100 border-orange-200",
-        textClass: "text-orange-700",
-        accent: "bg-orange-500",
-      },
-      dp_paid: {
-        label: "DP Masuk",
-        badgeClass: "bg-primary-100 border-primary-200",
-        textClass: "text-primary-700",
-        accent: "bg-primary-500",
-      },
-      fully_paid: {
-        label: "Lunas",
-        badgeClass: "bg-indigo-100 border-indigo-200",
-        textClass: "text-indigo-700",
-        accent: "bg-indigo-500",
-      },
-      completed: {
-        label: "Selesai",
-        badgeClass: "bg-success-100 border-success-200",
-        textClass: "text-success-700",
-        accent: "bg-success-500",
-      },
-      cancelled: {
-        label: "Ditolak",
-        badgeClass: "bg-error-100 border-error-200",
-        textClass: "text-error-700",
-        accent: "bg-error-500",
-      },
-    };
-    const status = statusConfig[item.status] ?? {
+    const status = STATUS_CONFIG[item.status] ?? {
       label: item.status,
       badgeClass: "bg-background-100 border-outline-100",
       textClass: "text-typography-600",
       accent: "bg-typography-400",
     };
+
+    const bookedOn = item.created_at
+      ? new Date(item.created_at).toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        })
+      : "-";
 
     return (
       <Pressable
@@ -130,20 +170,24 @@ export default function AdminBookingsScreen() {
           />
 
           <VStack className="gap-4 pl-2">
-            <HStack className="justify-between items-start">
-              <VStack className="flex-1 mr-2 gap-1">
+            {/* Header: nama klien + badge status */}
+            <HStack className="justify-between items-start gap-2">
+              <VStack className="flex-1 gap-1">
                 <Heading
                   className="text-typography-900 font-extrabold text-lg"
                   numberOfLines={1}
                 >
                   {item.profiles?.full_name || "Klien Tidak Dikenal"}
                 </Heading>
-                <Text className="text-typography-500 text-xs font-bold uppercase tracking-wider">
+                <Text
+                  className="text-typography-500 text-xs font-bold uppercase tracking-wider"
+                  numberOfLines={1}
+                >
                   {item.packages?.name || "Paket Dihapus"}
                 </Text>
               </VStack>
               <Box
-                className={`rounded-full border px-2.5 py-1 ${status.badgeClass}`}
+                className={`rounded-full border px-2.5 py-1 shrink-0 ${status.badgeClass}`}
               >
                 <Text
                   className={`text-[10px] font-bold uppercase tracking-wide ${status.textClass}`}
@@ -153,6 +197,7 @@ export default function AdminBookingsScreen() {
               </Box>
             </HStack>
 
+            {/* Detail info */}
             <VStack className="gap-2 bg-background-50 p-3 rounded-xl border border-outline-50">
               <HStack className="items-center gap-2">
                 <Ionicons
@@ -160,7 +205,10 @@ export default function AdminBookingsScreen() {
                   size={16}
                   color={theme.textSoft}
                 />
-                <Text className="text-typography-700 text-sm font-medium">
+                <Text
+                  className="text-typography-700 text-sm font-medium flex-1"
+                  numberOfLines={1}
+                >
                   {item.event_date}
                   {item.event_time
                     ? ` • ${item.event_time.slice(0, 5)} WIB`
@@ -174,12 +222,27 @@ export default function AdminBookingsScreen() {
                   color={theme.textSoft}
                 />
                 <Text
-                  className="text-typography-700 text-sm font-medium"
-                  numberOfLines={2}
+                  className="text-typography-700 text-sm font-medium flex-1"
+                  numberOfLines={1}
                 >
-                  {item.location}
+                  {item.location || "-"}
                 </Text>
               </HStack>
+              {item.profiles?.phone_number && (
+                <HStack className="items-center gap-2">
+                  <Ionicons
+                    name="call-outline"
+                    size={16}
+                    color={theme.textSoft}
+                  />
+                  <Text
+                    className="text-typography-700 text-sm font-medium flex-1"
+                    numberOfLines={1}
+                  >
+                    {item.profiles.phone_number}
+                  </Text>
+                </HStack>
+              )}
               {item.notes && (
                 <HStack className="items-start gap-2 mt-1">
                   <Ionicons
@@ -187,18 +250,31 @@ export default function AdminBookingsScreen() {
                     size={16}
                     color={theme.textSoft}
                   />
-                  <Text className="text-typography-500 text-xs flex-1 italic">
+                  <Text
+                    className="text-typography-500 text-xs flex-1 italic"
+                    numberOfLines={2}
+                  >
                     "{item.notes}"
                   </Text>
                 </HStack>
               )}
             </VStack>
 
-            <HStack className="justify-end items-center gap-1">
-              <Text className="text-primary-600 text-xs font-black">
-                Lihat Detail
+            {/* Footer: tanggal booking + lihat detail */}
+            <HStack className="justify-between items-center">
+              <Text className="text-typography-400 text-xs">
+                Dipesan {bookedOn}
               </Text>
-              <Ionicons name="chevron-forward" size={12} color={theme.accent} />
+              <HStack className="items-center gap-1">
+                <Text className="text-primary-600 text-xs font-black">
+                  Lihat Detail
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={12}
+                  color={theme.accent}
+                />
+              </HStack>
             </HStack>
           </VStack>
         </Box>
@@ -241,111 +317,58 @@ export default function AdminBookingsScreen() {
             <InputField
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholder="Cari nama klien, paket, lokasi, atau ID pesanan"
+              placeholder="Cari nama klien, paket, lokasi, atau ID"
               autoCapitalize="none"
               autoCorrect={false}
             />
           </Input>
 
-          <HStack className="gap-2 mb-4 flex-wrap">
-            {(["all", "pending", "paid", "completed"] as const).map((tab) => (
+          {/* Filter tabs — horizontal scroll agar semua status muat */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="mb-4"
+            contentContainerClassName="gap-2"
+          >
+            {FILTER_TABS.map((tab) => (
               <Pressable
-                key={tab}
-                onPress={() => setActiveTab(tab)}
+                key={tab.key}
+                onPress={() => setActiveTab(tab.key)}
                 className={`px-3 py-1.5 rounded-full ${
-                  activeTab === tab ? "bg-primary-500" : "bg-background-100"
+                  activeTab === tab.key ? "bg-primary-500" : "bg-background-100"
                 }`}
               >
                 <Text
                   className={`text-xs font-bold ${
-                    activeTab === tab ? "text-white" : "text-typography-600"
+                    activeTab === tab.key
+                      ? "text-white"
+                      : "text-typography-600"
                   }`}
                 >
-                  {tab === "pending"
-                    ? "Pending"
-                    : tab === "paid"
-                      ? "Sudah Bayar"
-                      : tab === "completed"
-                        ? "Selesai"
-                        : "Semua"}
+                  {tab.label}
                 </Text>
               </Pressable>
             ))}
-          </HStack>
+          </ScrollView>
 
-          {(() => {
-            const allBookings = [...pendingBookings, ...otherBookings];
-            let filteredBookings = allBookings;
-
-            if (activeTab === "pending") {
-              filteredBookings = allBookings.filter(
-                (booking) => booking.status === "pending",
-              );
-            } else if (activeTab === "paid") {
-              filteredBookings = allBookings.filter((booking) =>
-                ["dp_paid", "fully_paid"].includes(booking.status),
-              );
-            } else if (activeTab === "completed") {
-              filteredBookings = allBookings.filter(
-                (booking) => booking.status === "completed",
-              );
-            }
-
-            const normalizedQuery = searchQuery.trim().toLowerCase();
-
-            if (normalizedQuery) {
-              filteredBookings = filteredBookings.filter((booking) => {
-                const searchableText = [
-                  booking.id,
-                  booking.status,
-                  booking.location,
-                  booking.event_date,
-                  booking.profiles?.full_name,
-                  booking.profiles?.phone_number,
-                  booking.packages?.name,
-                  booking.notes,
-                ]
-                  .filter(Boolean)
-                  .join(" ")
-                  .toLowerCase();
-
-                return searchableText.includes(normalizedQuery);
-              });
-            }
-
-            if (activeTab === "all") {
-              const pendingFirst = filteredBookings.filter(
-                (booking) => booking.status === "pending",
-              );
-              const remaining = filteredBookings.filter(
-                (booking) => booking.status !== "pending",
-              );
-              filteredBookings = [...pendingFirst, ...remaining];
-            }
-
-            if (filteredBookings.length === 0) {
-              return (
-                <Box className="bg-background-0 border border-outline-100 rounded-2xl p-6 items-center justify-center border-dashed">
-                  <Ionicons
-                    name="receipt-outline"
-                    size={32}
-                    color={theme.textSoft}
-                  />
-                  <Text className="text-typography-500 text-center text-sm mt-2">
-                    Tidak ada pesanan di kategori ini.
-                  </Text>
-                </Box>
-              );
-            }
-
-            return (
-              <VStack className="gap-4">
-                {filteredBookings.map((item) => (
-                  <BookingCard key={item.id} item={item} />
-                ))}
-              </VStack>
-            );
-          })()}
+          {filteredBookings.length === 0 ? (
+            <Box className="bg-background-0 border border-outline-100 rounded-2xl p-6 items-center justify-center border-dashed">
+              <Ionicons
+                name="receipt-outline"
+                size={32}
+                color={theme.textSoft}
+              />
+              <Text className="text-typography-500 text-center text-sm mt-2">
+                Tidak ada pesanan di kategori ini.
+              </Text>
+            </Box>
+          ) : (
+            <VStack className="gap-4">
+              {filteredBookings.map((item) => (
+                <BookingCard key={item.id} item={item} />
+              ))}
+            </VStack>
+          )}
         </ScrollView>
       )}
     </SafeAreaView>

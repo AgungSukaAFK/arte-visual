@@ -140,7 +140,7 @@ export default function GalleryScreen() {
 
         {isVideo && (
           <Box className="absolute right-2 top-2 rounded-full bg-typography-900/70 p-2 pointer-events-none">
-            <Ionicons name="play" size={15} color="#FFFFFF" />
+            <Ionicons name="play" size={15} color={theme.surface} />
           </Box>
         )}
 
@@ -323,7 +323,7 @@ export default function GalleryScreen() {
               <Ionicons
                 name="images-outline"
                 size={64}
-                color={isDark ? "#404040" : "#D4D4D4"}
+                color={theme.textSoft}
               />
               <Text className="text-typography-500 mt-4 text-center">
                 {mediaList.length === 0
@@ -376,7 +376,7 @@ export default function GalleryScreen() {
           <ModalBody className="px-4 pb-2">
             <Box
               className="overflow-hidden rounded-2xl border border-outline-100"
-              style={{ height: 300, backgroundColor: "#0F172A" }}
+              style={{ height: 300, backgroundColor: theme.surfaceStrong }}
             >
               {selectedMedia?.media_url ? (
                 selectedMedia?.media_type === "video" ? (

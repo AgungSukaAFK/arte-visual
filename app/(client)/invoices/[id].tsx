@@ -424,7 +424,7 @@ export default function InvoiceDetailScreen() {
               </Box>
 
               <VStack className="items-center gap-2">
-                <Ionicons name="barcode-outline" size={32} color="#D1D5DB" />
+                <Ionicons name="barcode-outline" size={32} color={theme.borderStrong} />
                 <Text className="text-typography-400 text-[10px] font-bold text-center">
                   Simpan invoice ini sebagai bukti sah pembayaran Anda.
                 </Text>
@@ -443,11 +443,11 @@ export default function InvoiceDetailScreen() {
               <Ionicons
                 name="download-outline"
                 size={20}
-                color="white"
+                color={theme.surface}
                 style={{ marginRight: 8 }}
               />
               {printing ? (
-                <ButtonSpinner color="white" />
+                <ButtonSpinner color={theme.surface} />
               ) : (
                 <ButtonText className="font-bold text-typography-0">
                   UNDUH PDF INVOICE

@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
+import { getAppTheme } from "@/constants/theme";
 
 // Gluestack UI Components
 import { VStack } from "@/components/ui/vstack";
@@ -49,6 +50,7 @@ export default function AdminSettingsScreen() {
   const toast = useToast();
 
   const { colorScheme, setColorScheme } = useColorScheme();
+  const theme = getAppTheme(colorScheme);
   const isDark = colorScheme === "dark";
 
   // State Modals
@@ -175,7 +177,7 @@ export default function AdminSettingsScreen() {
             <Ionicons
               name={icon}
               size={20}
-              color={isDestructive ? "#ef4444" : isDark ? "#FFF" : "#181718"}
+              color={isDestructive ? theme.danger : theme.icon}
             />
           </Box>
           <VStack>
@@ -189,7 +191,7 @@ export default function AdminSettingsScreen() {
             )}
           </VStack>
         </HStack>
-        <Ionicons name="chevron-forward" size={20} color="#A3A3A3" />
+        <Ionicons name="chevron-forward" size={20} color={theme.textSoft} />
       </HStack>
     </Pressable>
   );
@@ -205,7 +207,7 @@ export default function AdminSettingsScreen() {
           <Ionicons
             name="arrow-back"
             size={24}
-            color={isDark ? "#FFF" : "#181718"}
+            color={theme.icon}
           />
           <Text className="text-typography-900 font-bold text-lg">Kembali</Text>
         </Pressable>
@@ -250,7 +252,7 @@ export default function AdminSettingsScreen() {
                     <Ionicons
                       name={isDark ? "moon" : "sunny"}
                       size={20}
-                      color={isDark ? "#FFF" : "#181718"}
+                      color={theme.icon}
                     />
                   </Box>
                   <Text className="font-bold text-typography-900">
@@ -260,7 +262,7 @@ export default function AdminSettingsScreen() {
                 <Switch
                   value={isDark}
                   onValueChange={toggleDarkMode}
-                  trackColor={{ false: "#E5E5E5", true: "#0284c7" }}
+                  trackColor={{ false: theme.borderStrong, true: theme.accent }}
                 />
               </HStack>
             </Box>
@@ -298,10 +300,10 @@ export default function AdminSettingsScreen() {
               className="rounded-2xl border-error-200 bg-error-50 h-14"
             >
               {loadingLogout ? (
-                <ButtonSpinner color="#ef4444" />
+                <ButtonSpinner color={theme.danger} />
               ) : (
                 <HStack className="items-center gap-2">
-                  <Ionicons name="log-out-outline" size={20} color="#ef4444" />
+                  <Ionicons name="log-out-outline" size={20} color={theme.danger} />
                   <ButtonText className="text-error-600 font-bold text-base">
                     Keluar dari Panel Admin
                   </ButtonText>
@@ -328,7 +330,7 @@ export default function AdminSettingsScreen() {
               <Ionicons
                 name="close"
                 size={24}
-                color={isDark ? "#FFF" : "#000"}
+                color={theme.icon}
               />
             </ModalCloseButton>
           </ModalHeader>
@@ -377,7 +379,7 @@ export default function AdminSettingsScreen() {
               disabled={loadingProfile}
             >
               {loadingProfile ? (
-                <ButtonSpinner color="white" />
+                <ButtonSpinner color={theme.surface} />
               ) : (
                 <ButtonText className="font-bold text-typography-0">
                   Simpan Profil
@@ -407,7 +409,7 @@ export default function AdminSettingsScreen() {
                 <Ionicons
                   name="close"
                   size={24}
-                  color={isDark ? "#FFF" : "#000"}
+                  color={theme.icon}
                 />
               </ModalCloseButton>
             </ModalHeader>
@@ -457,7 +459,7 @@ export default function AdminSettingsScreen() {
                 disabled={loadingPassword}
               >
                 {loadingPassword ? (
-                  <ButtonSpinner color="white" />
+                  <ButtonSpinner color={theme.surface} />
                 ) : (
                   <ButtonText className="font-bold text-typography-0">
                     Perbarui Password

@@ -903,7 +903,7 @@ export default function BookingScreen() {
                 disabled={submitting}
                 className="rounded-2xl h-14 bg-typography-950 active:bg-typography-900 shadow-hard-2"
               >
-                {submitting && <ButtonSpinner className="mr-2" color="white" />}
+                {submitting && <ButtonSpinner className="mr-2" color={theme.surface} />}
                 <ButtonText className="font-black text-typography-0">
                   KONFIRMASI PESANAN
                 </ButtonText>

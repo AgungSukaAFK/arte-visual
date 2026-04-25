@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
+import { getAppTheme } from "@/constants/theme";
 
 // Gluestack Components
 import { VStack } from "@/components/ui/vstack";
@@ -20,7 +21,8 @@ import { Badge, BadgeText } from "@/components/ui/badge";
 export default function OrdersScreen() {
   const { user } = useAuth();
   const { colorScheme } = useColorScheme();
-  const iconColor = colorScheme === "dark" ? "#FFFFFF" : "#181718";
+  const theme = getAppTheme(colorScheme);
+  const iconColor = theme.icon;
 
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -97,7 +99,7 @@ export default function OrdersScreen() {
       ) : bookings.length === 0 ? (
         <Center className="flex-1 px-8">
           <Box className="bg-background-0 p-8 rounded-3xl items-center border border-outline-100 border-dashed">
-            <Ionicons name="receipt-outline" size={64} color="#D1D5DB" />
+            <Ionicons name="receipt-outline" size={64} color={theme.borderStrong} />
             <Text className="text-typography-600 font-bold text-center mt-4">
               Belum Ada Pesanan
             </Text>
@@ -160,7 +162,7 @@ export default function OrdersScreen() {
                         <Ionicons
                           name="calendar-outline"
                           size={18}
-                          color="#737373"
+                          color={theme.textSoft}
                         />
                         <Text className="text-typography-700 text-sm font-semibold">
                           {item.event_date}
@@ -170,7 +172,7 @@ export default function OrdersScreen() {
                         <Ionicons
                           name="cash-outline"
                           size={18}
-                          color="#737373"
+                          color={theme.textSoft}
                         />
                         <Text className="text-typography-900 text-sm font-black">
                           {formatRupiah(item.packages?.price)}
@@ -183,7 +185,7 @@ export default function OrdersScreen() {
                         <Ionicons
                           name={status.icon as any}
                           size={14}
-                          color="#737373"
+                          color={theme.textSoft}
                         />
                         <Text className="text-typography-500 text-[10px] font-bold">
                           Status diperbarui baru saja
@@ -196,7 +198,7 @@ export default function OrdersScreen() {
                         <Ionicons
                           name="chevron-forward"
                           size={12}
-                          color="#0284c7"
+                          color={theme.accent}
                         />
                       </HStack>
                     </HStack>

@@ -4,6 +4,7 @@ import { useFocusEffect } from "expo-router";
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
+import { getAppTheme } from "@/constants/theme";
 
 // Gluestack UI Components
 import { VStack } from "@/components/ui/vstack";
@@ -59,6 +60,7 @@ export default function AdminPackagesScreen() {
 
   const toast = useToast();
   const { colorScheme } = useColorScheme();
+  const theme = getAppTheme(colorScheme);
   const isDark = colorScheme === "dark";
 
   useFocusEffect(
@@ -236,7 +238,7 @@ export default function AdminPackagesScreen() {
           onPress={() => handleOpenForm()}
           className="h-12 w-12 bg-primary-500 rounded-full items-center justify-center active:bg-primary-600 shadow-soft-1"
         >
-          <Ionicons name="add" size={28} color="#FFF" />
+          <Ionicons name="add" size={28} color={theme.surface} />
         </Pressable>
       </HStack>
 
@@ -293,16 +295,14 @@ export default function AdminPackagesScreen() {
                         onPress={() => handleOpenForm(pkg)}
                         className="w-8 h-8 rounded-full bg-primary-50 items-center justify-center"
                       >
-                        <Ionicons name="pencil" size={14} color="#0284c7" />
+                        <Ionicons name="pencil" size={14} color={theme.accent} />
                       </Pressable>
                       <Pressable
                         onPress={() => handleOpenConfirm(pkg)}
                         className={`w-8 h-8 rounded-full items-center justify-center ${pkg.is_active ? "bg-error-50" : "bg-success-50"}`}
                       >
                         <Ionicons
-                          name={pkg.is_active ? "eye-off" : "eye"}
-                          size={14}
-                          color={pkg.is_active ? "#ef4444" : "#10b981"}
+                          color={pkg.is_active ? theme.danger : theme.success}
                         />
                       </Pressable>
                     </HStack>
@@ -326,7 +326,7 @@ export default function AdminPackagesScreen() {
                     {pkg.description}
                   </Text>
                   <HStack className="items-center gap-2">
-                    <Ionicons name="list" size={14} color="#737373" />
+                    <Ionicons name="list" size={14} color={theme.textSoft} />
                     <Text className="text-typography-500 text-xs">
                       {featuresArray?.length || 0} Item Termasuk
                     </Text>
@@ -368,7 +368,7 @@ export default function AdminPackagesScreen() {
               <Ionicons
                 name="close"
                 size={24}
-                color={isDark ? "#FFF" : "#000"}
+                color={theme.icon}
               />
             </ModalCloseButton>
           </ModalHeader>
@@ -521,7 +521,7 @@ export default function AdminPackagesScreen() {
               disabled={saving}
             >
               {saving ? (
-                <ButtonSpinner color="white" />
+                <ButtonSpinner color={theme.surface} />
               ) : (
                 <ButtonText className="font-bold text-typography-0 text-base">
                   Simpan Paket
@@ -555,7 +555,7 @@ export default function AdminPackagesScreen() {
               <Ionicons
                 name="close"
                 size={24}
-                color={isDark ? "#FFF" : "#000"}
+                color={theme.icon}
               />
             </ModalCloseButton>
           </ModalHeader>
@@ -565,9 +565,7 @@ export default function AdminPackagesScreen() {
                 className={`w-16 h-16 rounded-full items-center justify-center ${selectedPkg?.is_active ? "bg-error-50" : "bg-success-50"}`}
               >
                 <Ionicons
-                  name={selectedPkg?.is_active ? "eye-off" : "eye"}
-                  size={32}
-                  color={selectedPkg?.is_active ? "#ef4444" : "#10b981"}
+                  color={selectedPkg?.is_active ? theme.danger : theme.success}
                 />
               </Box>
               <Text className="text-typography-900 text-center font-bold px-4 mt-2">
@@ -595,7 +593,7 @@ export default function AdminPackagesScreen() {
               disabled={toggling}
             >
               {toggling ? (
-                <ButtonSpinner color="white" />
+                <ButtonSpinner color={theme.surface} />
               ) : (
                 <ButtonText className="font-bold text-typography-0">
                   Ya, Ubah

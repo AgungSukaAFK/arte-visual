@@ -392,7 +392,7 @@ export default function PaymentWebViewScreen() {
             disabled={checkingStatus}
           >
             {checkingStatus ? (
-              <ButtonSpinner color="white" />
+              <ButtonSpinner color={theme.surface} />
             ) : (
               <ButtonText className="font-bold text-typography-0">
                 Saya Sudah Selesai

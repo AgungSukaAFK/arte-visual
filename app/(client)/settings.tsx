@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
+import { getAppTheme } from "@/constants/theme";
 
 // Gluestack UI Components
 import { VStack } from "@/components/ui/vstack";
@@ -49,6 +50,7 @@ export default function SettingsScreen() {
   const toast = useToast();
 
   const { colorScheme, setColorScheme } = useColorScheme();
+  const theme = getAppTheme(colorScheme);
   const isDark = colorScheme === "dark";
 
   // --- State Modals ---
@@ -212,7 +214,7 @@ export default function SettingsScreen() {
             <Ionicons
               name={icon}
               size={20}
-              color={isDestructive ? "#ef4444" : isDark ? "#FFF" : "#181718"}
+              color={isDestructive ? theme.danger : theme.icon}
             />
           </Box>
           <VStack>
@@ -229,7 +231,7 @@ export default function SettingsScreen() {
         <Ionicons
           name="chevron-forward"
           size={20}
-          color={isDark ? "#6B7280" : "#A3A3A3"}
+          color={theme.textSoft}
         />
       </HStack>
     </Pressable>
@@ -286,7 +288,7 @@ export default function SettingsScreen() {
                     <Ionicons
                       name={isDark ? "moon" : "sunny"}
                       size={20}
-                      color={isDark ? "#FFF" : "#181718"}
+                      color={theme.icon}
                     />
                   </Box>
                   <Text className="font-bold text-typography-900">
@@ -296,7 +298,7 @@ export default function SettingsScreen() {
                 <Switch
                   value={isDark}
                   onValueChange={toggleDarkMode}
-                  trackColor={{ false: "#E5E5E5", true: "#0284c7" }}
+                  trackColor={{ false: theme.borderStrong, true: theme.accent }}
                 />
               </HStack>
             </Box>
@@ -340,10 +342,10 @@ export default function SettingsScreen() {
               className="rounded-2xl border-error-200 bg-error-50 h-14"
             >
               {loadingLogout ? (
-                <ButtonSpinner color="#ef4444" />
+                <ButtonSpinner color={theme.danger} />
               ) : (
                 <HStack className="items-center gap-2">
-                  <Ionicons name="log-out-outline" size={20} color="#ef4444" />
+                  <Ionicons name="log-out-outline" size={20} color={theme.danger} />
                   <ButtonText className="text-error-600 font-bold text-base">
                     Keluar dari Akun
                   </ButtonText>
@@ -383,7 +385,7 @@ export default function SettingsScreen() {
               <Ionicons
                 name="close"
                 size={24}
-                color={isDark ? "#FFF" : "#000"}
+                color={theme.icon}
               />
             </ModalCloseButton>
           </ModalHeader>
@@ -433,7 +435,7 @@ export default function SettingsScreen() {
               disabled={loadingProfile}
             >
               {loadingProfile ? (
-                <ButtonSpinner color="white" />
+                <ButtonSpinner color={theme.surface} />
               ) : (
                 <ButtonText className="font-bold text-typography-0 text-base">
                   Simpan Profil
@@ -470,7 +472,7 @@ export default function SettingsScreen() {
                 <Ionicons
                   name="close"
                   size={24}
-                  color={isDark ? "#FFF" : "#000"}
+                  color={theme.icon}
                 />
               </ModalCloseButton>
             </ModalHeader>
@@ -524,7 +526,7 @@ export default function SettingsScreen() {
                 disabled={loadingPassword}
               >
                 {loadingPassword ? (
-                  <ButtonSpinner color="white" />
+                  <ButtonSpinner color={theme.surface} />
                 ) : (
                   <ButtonText className="font-bold text-typography-0 text-base">
                     Perbarui Password
@@ -555,13 +557,13 @@ export default function SettingsScreen() {
               <Ionicons
                 name="close"
                 size={24}
-                color={isDark ? "#FFF" : "#000"}
+                color={theme.icon}
               />
             </ModalCloseButton>
           </ModalHeader>
           <ModalBody className="py-8">
             <Center className="gap-3">
-              <Ionicons name="chatbubbles-outline" size={64} color="#A3A3A3" />
+              <Ionicons name="chatbubbles-outline" size={64} color={theme.textSoft} />
               <Heading className="text-typography-900 font-bold text-center">
                 Panel Diskusi & FAQ
               </Heading>

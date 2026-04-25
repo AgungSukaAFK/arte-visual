@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
+import { getAppTheme } from "@/constants/theme";
 
 // Gluestack UI Components
 import { VStack } from "@/components/ui/vstack";
@@ -32,6 +33,7 @@ export default function PackageListScreen() {
 
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
+  const theme = getAppTheme(colorScheme);
 
   useEffect(() => {
     fetchPackages();
@@ -113,7 +115,7 @@ export default function PackageListScreen() {
             {/* Indikator jika sedang dalam proses booking (membawa tanggal) */}
             {date && (
               <HStack className="items-center gap-2 mt-3 bg-primary-50 px-3 py-2 rounded-xl border border-primary-100 self-start">
-                <Ionicons name="calendar" size={16} color="#0284c7" />
+                <Ionicons name="calendar" size={16} color={theme.accent} />
                 <Text className="text-primary-700 font-bold text-sm">
                   Untuk Tanggal: {date}
                 </Text>
@@ -199,7 +201,7 @@ export default function PackageListScreen() {
                               <Ionicons
                                 name="checkmark"
                                 size={14}
-                                color="#0284c7"
+                                color={theme.accent}
                               />
                             </Box>
                             <Text className="text-typography-700 text-sm flex-1">

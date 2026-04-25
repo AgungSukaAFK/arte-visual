@@ -4,6 +4,7 @@ import { useFocusEffect } from "expo-router";
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
+import { getAppTheme } from "@/constants/theme";
 
 // Gluestack UI Components
 import { VStack } from "@/components/ui/vstack";
@@ -30,6 +31,7 @@ export default function AdminUsersScreen() {
 
   const toast = useToast();
   const { colorScheme } = useColorScheme();
+  const theme = getAppTheme(colorScheme);
   const isDark = colorScheme === "dark";
 
   useFocusEffect(
@@ -151,7 +153,7 @@ export default function AdminUsersScreen() {
                 <Ionicons
                   name="people-outline"
                   size={32}
-                  color="#A3A3A3"
+                  color={theme.textSoft}
                   className="mb-2"
                 />
                 <Text className="text-typography-500 text-center text-sm">
@@ -205,7 +207,7 @@ export default function AdminUsersScreen() {
                           <Ionicons
                             name="call-outline"
                             size={14}
-                            color="#737373"
+                            color={theme.textSoft}
                           />
                           <Text className="text-typography-500 text-sm">
                             {client.phone_number || "Belum ada nomor HP"}
@@ -235,7 +237,7 @@ export default function AdminUsersScreen() {
                       disabled={isProcessing}
                     >
                       {isProcessing ? (
-                        <ButtonSpinner color={isBanned ? "#FFF" : "#ef4444"} />
+                        <ButtonSpinner color={isBanned ? theme.surface : theme.danger} />
                       ) : (
                         <HStack className="items-center gap-2">
                           <Ionicons
@@ -245,7 +247,7 @@ export default function AdminUsersScreen() {
                                 : "ban-outline"
                             }
                             size={18}
-                            color={isBanned ? "#FFF" : "#ef4444"}
+                            color={isBanned ? theme.surface : theme.danger}
                           />
                           <ButtonText
                             className={`font-bold ${isBanned ? "text-typography-0" : "text-error-600"}`}

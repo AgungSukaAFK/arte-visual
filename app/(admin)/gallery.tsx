@@ -11,6 +11,7 @@ import { useFocusEffect } from "expo-router";
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
+import { getAppTheme } from "@/constants/theme";
 import * as ImagePicker from "expo-image-picker";
 import { File } from "expo-file-system";
 import { Video, ResizeMode } from "expo-av";
@@ -67,6 +68,7 @@ export default function AdminGalleryScreen() {
 
   const toast = useToast();
   const { colorScheme } = useColorScheme();
+  const theme = getAppTheme(colorScheme);
   const isDark = colorScheme === "dark";
 
   useFocusEffect(
@@ -281,7 +283,7 @@ export default function AdminGalleryScreen() {
           <Ionicons
             name={isVideo ? "videocam" : "camera"}
             size={10}
-            color="#FFF"
+            color={theme.surface}
           />
           <Text className="text-typography-0 text-[8px] font-bold uppercase">
             {item.media_type}
@@ -297,20 +299,20 @@ export default function AdminGalleryScreen() {
             <Ionicons
               name={item.is_active ? "eye" : "eye-off"}
               size={14}
-              color={item.is_active ? "#181718" : "#FFF"}
+              color={item.is_active ? theme.icon : theme.surface}
             />
           </Pressable>
           <Pressable
             onPress={() => handleOpenEdit(item)}
             className="w-7 h-7 rounded-full bg-primary-500/90 items-center justify-center"
           >
-            <Ionicons name="pencil" size={14} color="#FFF" />
+            <Ionicons name="pencil" size={14} color={theme.surface} />
           </Pressable>
           <Pressable
             onPress={() => handleDelete(item)}
             className="w-7 h-7 rounded-full bg-error-50/90 items-center justify-center"
           >
-            <Ionicons name="trash" size={14} color="#ef4444" />
+            <Ionicons name="trash" size={14} color={theme.danger} />
           </Pressable>
         </VStack>
 
@@ -357,7 +359,7 @@ export default function AdminGalleryScreen() {
           onPress={handlePickMedia}
           className="h-12 w-12 bg-primary-500 rounded-full items-center justify-center shadow-soft-1 active:bg-primary-600"
         >
-          <Ionicons name="add" size={28} color="#FFF" />
+          <Ionicons name="add" size={28} color={theme.surface} />
         </Pressable>
       </HStack>
 
@@ -383,7 +385,7 @@ export default function AdminGalleryScreen() {
               <Ionicons
                 name="images-outline"
                 size={64}
-                color={isDark ? "#404040" : "#D4D4D4"}
+                color={theme.borderStrong}
               />
               <Text className="text-typography-500 mt-4 text-center">
                 Belum ada karya yang diunggah.
@@ -420,7 +422,7 @@ export default function AdminGalleryScreen() {
                   <Ionicons
                     name="close"
                     size={24}
-                    color={isDark ? "#FFF" : "#000"}
+                    color={theme.icon}
                   />
                 </ModalCloseButton>
               )}
@@ -491,7 +493,7 @@ export default function AdminGalleryScreen() {
                 disabled={uploading}
               >
                 {uploading ? (
-                  <ButtonSpinner color="white" />
+                  <ButtonSpinner color={theme.surface} />
                 ) : (
                   <ButtonText className="font-bold text-typography-0">
                     Unggah ke Server
@@ -525,7 +527,7 @@ export default function AdminGalleryScreen() {
                   <Ionicons
                     name="close"
                     size={24}
-                    color={isDark ? "#FFF" : "#000"}
+                    color={theme.icon}
                   />
                 </ModalCloseButton>
               )}
@@ -574,7 +576,7 @@ export default function AdminGalleryScreen() {
                 disabled={savingEdit}
               >
                 {savingEdit ? (
-                  <ButtonSpinner color="white" />
+                  <ButtonSpinner color={theme.surface} />
                 ) : (
                   <ButtonText className="font-bold text-typography-0">
                     Simpan Perubahan

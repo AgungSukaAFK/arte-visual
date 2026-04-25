@@ -400,7 +400,7 @@ export default function AdminDashboard() {
               <Ionicons
                 name="close"
                 size={24}
-                color={isDark ? "#FFF" : "#000"}
+                color={theme.icon}
               />
             </ModalCloseButton>
           </ModalHeader>
@@ -413,7 +413,7 @@ export default function AdminDashboard() {
                     <Ionicons
                       name="cafe-outline"
                       size={32}
-                      color="#A3A3A3"
+                      color={theme.textSoft}
                       className="mb-2"
                     />
                     <Text className="text-typography-500 text-center text-sm">
@@ -438,7 +438,7 @@ export default function AdminDashboard() {
                           <Ionicons
                             name="time-outline"
                             size={16}
-                            color="#FFF"
+                            color={theme.surface}
                           />
                           <Text className="text-typography-0 font-bold text-[11px] mt-1">
                             {detail.event_time.slice(0, 5)}
